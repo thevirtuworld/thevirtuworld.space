@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  --background: #050A18;
+  --foreground: #F5F7FF;
+  --primary: #4D7CFF;
+  --secondary: #FF4D94;
+  --accent: #4DFFA3;
+  --purple: #8A4DFF;
+  --cyan: #4DEFFF;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --background: #EEF1FF;
+    --foreground: #050A18;
+    --primary: #2E5BD9;
+    --secondary: #D92E7A;
+    --accent: #2ED976;
+  }
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+}
+
+/* Animations */
+.glow {
+  animation: glow 3s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 5px var(--primary), 0 0 10px var(--primary);
+  }
+  to {
+    box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary), 0 0 30px var(--primary);
+  }
+}
+
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.gradient-bg {
+  background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent), var(--purple), var(--cyan));
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Custom cursor */
+.custom-cursor {
+  cursor: url('/cursor.svg'), auto;
+}
+
+/* Grid animation */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 20px 20px;
+  animation: scrollGrid 20s linear infinite;
+}
+
+@keyframes scrollGrid {
+  0% {
+    background-position: 0px 0px;
+  }
+  100% {
+    background-position: 40px 40px;
+  }
+}
+
+/* Pixel animation */
+.pixel-transition {
+  transition: all 0.3s steps(5, end);
+}
