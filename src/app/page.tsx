@@ -353,7 +353,7 @@ const Footer = () => (
         <div className="text-gray-500 text-sm">
           © 2023 TheVirtuWorld. All rights reserved.
         </div>
-        <div className="flex space-x-6 mt-4 md:mt-0"></div>
+        <div className="flex space-x-6 mt-4 md:mt-0">
           {["Twitter", "Discord", "GitHub", "Medium"].map((social) => (
             <a key={social} href="#" className="text-gray-400 hover:text-primary transition-colors">
               {social}
@@ -362,7 +362,7 @@ const Footer = () => (
         </div>
       </div>
     </div>
-  </Footer>
+  </footer>
 );
 
 export default function Home() {
