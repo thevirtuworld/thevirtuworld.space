@@ -86,16 +86,31 @@ const HeroSection = () => (
         <div className="lg:w-1/2 relative">
           <div className="relative w-full h-[500px] float">
             <div className="absolute w-full h-full rounded-2xl overflow-hidden border border-white/10 glow">
-              {/* This would be replaced with your actual hero image */}
-              <div className="w-full h-full bg-gradient-to-br from-primary/20 to-secondary/20"></div>
+              {/* Hero image with gameplay.png as background */}
+              <Image 
+                src="/images/gameplay.png" 
+                alt="TheVirtuWorld Gameplay" 
+                layout="fill" 
+                objectFit="cover" 
+                className="w-full h-full"
+              />
             </div>
             <div className="absolute -top-5 -right-5 w-24 h-24 bg-accent/20 backdrop-blur-md rounded-xl p-4 border border-accent/30 pulse">
               <div className="text-sm font-semibold">NFT</div>
               <div className="text-lg font-bold">Assets</div>
             </div>
-            <div className="absolute bottom-10 -left-10 w-32 h-32 bg-purple/20 backdrop-blur-md rounded-xl p-4 border border-purple/30 pulse">
-              <div className="text-sm font-semibold">Web3</div>
-              <div className="text-lg font-bold">Powered</div>
+            <div className="absolute bottom-10 -left-10 w-32 h-32 bg-purple/20 backdrop-blur-md rounded-xl p-4 border border-purple/30 pulse overflow-hidden">
+              <Image 
+                src="/images/gameplay.png" 
+                alt="Web3 Powered" 
+                layout="fill" 
+                objectFit="cover" 
+                className="absolute inset-0 opacity-50 z-0" 
+              />
+              <div className="relative z-10">
+                <div className="text-sm font-semibold">Web3</div>
+                <div className="text-lg font-bold">Powered</div>
+              </div>
             </div>
           </div>
         </div>
@@ -120,6 +135,14 @@ const FeaturedGames = () => (
         {[1, 2, 3, 4, 5, 6].map((i) => (
           <div key={i} className="game-card bg-gray-900/50 backdrop-blur-md rounded-xl overflow-hidden border border-white/5 hover:border-primary/50 transition-all group hover:transform hover:scale-[1.02]">
             <div className="h-48 w-full relative bg-gradient-to-br from-purple/20 to-cyan/20">
+              {/* Add gameplay image to each game card */}
+              <Image 
+                src="/images/gameplay.png" 
+                alt={`Virtual Game ${i} gameplay`} 
+                layout="fill" 
+                objectFit="cover" 
+                className="w-full h-full"
+              />
               <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full text-xs">
                 Web3
               </div>
@@ -330,7 +353,7 @@ const Footer = () => (
         <div className="text-gray-500 text-sm">
           © 2023 TheVirtuWorld. All rights reserved.
         </div>
-        <div className="flex space-x-6 mt-4 md:mt-0">
+        <div className="flex space-x-6 mt-4 md:mt-0"></div>
           {["Twitter", "Discord", "GitHub", "Medium"].map((social) => (
             <a key={social} href="#" className="text-gray-400 hover:text-primary transition-colors">
               {social}
@@ -339,7 +362,7 @@ const Footer = () => (
         </div>
       </div>
     </div>
-  </footer>
+  </Footer>
 );
 
 export default function Home() {
