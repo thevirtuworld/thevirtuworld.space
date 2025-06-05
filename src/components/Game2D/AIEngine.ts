@@ -1,4 +1,4 @@
-import { Entity, Resource, Building, Task } from './GameTypes';
+import { Entity, Resource, Building, Task, WorldState } from './GameTypes';
 
 interface NeuralNode {
   id: string;
@@ -428,5 +428,414 @@ export class AIColonyManager {
       }))
       .sort((a, b) => b.fitness - a.fitness)
       .slice(0, 5);
+  }
+}
+
+export class AIEngine {
+  private decisionCooldowns: Map<string, number> = new Map();
+  private readonly DECISION_INTERVAL = 30; // frames between decisions
+
+  updateEntity(entity: Entity, worldState: WorldState, deltaTime: number): void {
+    // Update cooldown
+    const cooldown = this.decisionCooldowns.get(entity.id) || 0;
+    this.decisionCooldowns.set(entity.id, Math.max(0, cooldown - 1));
+
+    // Update current task
+    if (entity.currentTask) {
+      this.updateTask(entity, worldState, deltaTime);
+    }
+
+    // Make new decisions if cooldown is over
+    if (cooldown <= 0) {
+      this.makeDecision(entity, worldState);
+      this.decisionCooldowns.set(entity.id, this.DECISION_INTERVAL);
+    }
+
+    // Update entity state
+    this.updateEntityState(entity, worldState, deltaTime);
+  }
+
+  private makeDecision(entity: Entity, worldState: WorldState): void {
+    // Skip if already has a task
+    if (entity.currentTask && entity.currentTask.progress < 1) {
+      return;
+    }
+
+    const decisions = this.evaluateOptions(entity, worldState);
+    const bestDecision = this.selectBestDecision(decisions, entity);
+
+    if (bestDecision) {
+      entity.currentTask = bestDecision;
+    }
+  }
+
+  private evaluateOptions(entity: Entity, worldState: WorldState): Task[] {
+    const options: Task[] = [];
+
+    // Gather food if hungry
+    if (entity.food < 30) {
+      const foodResource = this.findNearestResource(entity, worldState, 'food');
+      if (foodResource) {
+        options.push({
+          type: 'gather',
+          resource: 'food',
+          target: { x: foodResource.x, y: foodResource.y },
+          progress: 0,
+          duration: 60
+        });
+      }
+    }
+
+    // Gather wood if needed
+    if (entity.wood < 20) {
+      const woodResource = this.findNearestResource(entity, worldState, 'wood');
+      if (woodResource) {
+        options.push({
+          type: 'gather',
+          resource: 'wood',
+          target: { x: woodResource.x, y: woodResource.y },
+          progress: 0,
+          duration: 80
+        });
+      }
+    }
+
+    // Build house if homeless and has resources
+    if (entity.buildings.length === 0 && entity.wood >= 50 && entity.stone >= 30) {
+      const buildSite = this.findBuildingSite(entity, worldState);
+      options.push({
+        type: 'build',
+        structure: 'house',
+        target: buildSite,
+        progress: 0,
+        duration: 120
+      });
+    }
+
+    // Explore if exploration personality is high
+    if (entity.aiPersonality.exploration > 0.6) {
+      const unexploredArea = this.findUnexploredArea(entity, worldState);
+      if (unexploredArea) {
+        options.push({
+          type: 'explore',
+          target: unexploredArea,
+          progress: 0,
+          duration: 100
+        });
+      }
+    }
+
+    // Communicate with nearby entities
+    const nearbyEntities = this.findNearbyEntities(entity, worldState, 50);
+    if (nearbyEntities.length > 0 && entity.aiPersonality.cooperation > 0.5) {
+      const target = nearbyEntities[0];
+      options.push({
+        type: 'communicate',
+        target: { x: target.x, y: target.y },
+        progress: 0,
+        duration: 40
+      });
+    }
+
+    return options;
+  }
+
+  private selectBestDecision(options: Task[], entity: Entity): Task | null {
+    if (options.length === 0) return null;
+
+    // Score each option based on AI personality and current needs
+    const scoredOptions = options.map(option => ({
+      task: option,
+      score: this.scoreTask(option, entity)
+    }));
+
+    // Sort by score and return best option
+    scoredOptions.sort((a, b) => b.score - a.score);
+    return scoredOptions[0].task;
+  }
+
+  private scoreTask(task: Task, entity: Entity): number {
+    let score = 0;
+
+    switch (task.type) {
+      case 'gather':
+        if (task.resource === 'food' && entity.food < 50) {
+          score = 100 - entity.food; // Higher priority when hungrier
+        } else if (task.resource === 'wood' && entity.wood < 30) {
+          score = 50 - entity.wood;
+        } else if (task.resource === 'stone' && entity.stone < 30) {
+          score = 40 - entity.stone;
+        }
+        break;
+
+      case 'build':
+        if (entity.buildings.length === 0) {
+          score = 80; // High priority for first building
+        } else {
+          score = 30;
+        }
+        break;
+
+      case 'explore':
+        score = entity.aiPersonality.exploration * 60;
+        break;
+
+      case 'communicate':
+        score = entity.aiPersonality.cooperation * 40;
+        break;
+
+      case 'defend':
+        score = entity.aiPersonality.aggression * 70;
+        break;
+    }
+
+    // Add some randomness
+    score += (Math.random() - 0.5) * 10;
+
+    return score;
+  }
+
+  private updateTask(entity: Entity, worldState: WorldState, deltaTime: number): void {
+    if (!entity.currentTask) return;
+
+    const task = entity.currentTask;
+    const progressRate = this.getTaskProgressRate(entity, task);
+    
+    task.progress += progressRate * deltaTime;
+
+    // Move towards target if needed
+    if (task.target) {
+      this.moveTowardsTarget(entity, task.target);
+    }
+
+    // Complete task when progress reaches 1
+    if (task.progress >= 1) {
+      this.completeTask(entity, task, worldState);
+      entity.currentTask = undefined;
+    }
+  }
+
+  private getTaskProgressRate(entity: Entity, task: Task): number {
+    const baseRate = 1 / task.duration;
+    const efficiencyMultiplier = 0.5 + entity.aiPersonality.efficiency;
+    return baseRate * efficiencyMultiplier;
+  }
+
+  private moveTowardsTarget(entity: Entity, target: { x: number; y: number }): void {
+    const dx = target.x - entity.x;
+    const dy = target.y - entity.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance > 2) {
+      const moveDistance = entity.speed;
+      entity.targetX = entity.x + (dx / distance) * moveDistance;
+      entity.targetY = entity.y + (dy / distance) * moveDistance;
+      entity.isMoving = true;
+    } else {
+      entity.isMoving = false;
+    }
+  }
+
+  private completeTask(entity: Entity, task: Task, worldState: WorldState): void {
+    switch (task.type) {
+      case 'gather':
+        this.completeGatherTask(entity, task, worldState);
+        break;
+      case 'build':
+        this.completeBuildTask(entity, task, worldState);
+        break;
+      case 'explore':
+        this.completeExploreTask(entity, task);
+        break;
+      case 'communicate':
+        this.completeCommunicateTask(entity, task, worldState);
+        break;
+    }
+
+    // Gain experience
+    entity.experience += 10;
+    if (entity.experience >= entity.level * 100) {
+      entity.level++;
+      entity.experience = 0;
+    }
+  }
+
+  private completeGatherTask(entity: Entity, task: Task, worldState: WorldState): void {
+    if (!task.resource || !task.target) return;
+
+    // Find and consume resource
+    const resource = this.findResourceAt(task.target, worldState);
+    if (resource && resource.amount > 0) {
+      const gathered = Math.min(resource.amount, 10 + entity.level * 2);
+      resource.amount -= gathered;
+
+      switch (task.resource) {
+        case 'food':
+          entity.food = Math.min(100, entity.food + gathered);
+          break;
+        case 'wood':
+          entity.wood += gathered;
+          break;
+        case 'stone':
+          entity.stone += gathered;
+          break;
+      }
+    }
+  }
+
+  private completeBuildTask(entity: Entity, task: Task, worldState: WorldState): void {
+    if (!task.structure || !task.target) return;
+
+    // Consume resources and create building
+    if (task.structure === 'house' && entity.wood >= 50 && entity.stone >= 30) {
+      entity.wood -= 50;
+      entity.stone -= 30;
+
+      const building: Building = {
+        id: `building_${Date.now()}_${Math.random()}`,
+        type: 'house',
+        x: task.target.x,
+        y: task.target.y,
+        health: 100,
+        level: 1,
+        owner: entity.id
+      };
+
+      entity.buildings.push(building);
+      worldState.buildings.set(building.id, building);
+    }
+  }
+
+  private completeExploreTask(entity: Entity, task: Task): void {
+    if (!task.target) return;
+    
+    const areaKey = `${Math.floor(task.target.x / 50)}_${Math.floor(task.target.y / 50)}`;
+    entity.exploredAreas.add(areaKey);
+  }
+
+  private completeCommunicateTask(entity: Entity, task: Task, worldState: WorldState): void {
+    if (!task.target) return;
+
+    const nearbyEntity = this.findEntityAt(task.target, worldState);
+    if (nearbyEntity) {
+      // Improve relationship
+      const currentRelation = entity.relationships.get(nearbyEntity.id) || 0;
+      entity.relationships.set(nearbyEntity.id, Math.min(100, currentRelation + 10));
+      
+      const otherRelation = nearbyEntity.relationships.get(entity.id) || 0;
+      nearbyEntity.relationships.set(entity.id, Math.min(100, otherRelation + 10));
+    }
+  }
+
+  private updateEntityState(entity: Entity, worldState: WorldState, deltaTime: number): void {
+    // Move towards target position
+    if (entity.isMoving) {
+      const dx = entity.targetX - entity.x;
+      const dy = entity.targetY - entity.y;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      if (distance > 0.5) {
+        entity.x += (dx / distance) * entity.speed;
+        entity.y += (dy / distance) * entity.speed;
+      } else {
+        entity.x = entity.targetX;
+        entity.y = entity.targetY;
+        entity.isMoving = false;
+      }
+    }
+
+    // Consume food over time
+    entity.food = Math.max(0, entity.food - 0.1 * deltaTime);
+    
+    // Health decreases if no food
+    if (entity.food <= 0) {
+      entity.health = Math.max(0, entity.health - 0.5 * deltaTime);
+    } else if (entity.health < 100) {
+      entity.health = Math.min(100, entity.health + 0.2 * deltaTime);
+    }
+
+    // Age increases
+    entity.age += 0.01 * deltaTime;
+  }
+
+  // Helper methods
+  private findNearestResource(entity: Entity, worldState: WorldState, type: string): Resource | null {
+    let nearest: Resource | null = null;
+    let minDistance = Infinity;
+
+    for (const resource of worldState.resources.values()) {
+      if (resource.type === type && resource.amount > 0) {
+        const distance = this.getDistance(entity, resource);
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearest = resource;
+        }
+      }
+    }
+
+    return nearest;
+  }
+
+  private findBuildingSite(entity: Entity, worldState: WorldState): { x: number; y: number } {
+    // Find a clear area near the entity
+    const attempts = 10;
+    for (let i = 0; i < attempts; i++) {
+      const x = entity.x + (Math.random() - 0.5) * 100;
+      const y = entity.y + (Math.random() - 0.5) * 100;
+      
+      // Check if area is clear
+      const isClear = !Array.from(worldState.buildings.values()).some(building =>
+        this.getDistance({ x, y }, building) < 30
+      );
+      
+      if (isClear) {
+        return { x, y };
+      }
+    }
+    
+    return { x: entity.x + 50, y: entity.y + 50 };
+  }
+
+  private findUnexploredArea(entity: Entity, worldState: WorldState): { x: number; y: number } | null {
+    for (let i = 0; i < 5; i++) {
+      const x = entity.x + (Math.random() - 0.5) * 200;
+      const y = entity.y + (Math.random() - 0.5) * 200;
+      const areaKey = `${Math.floor(x / 50)}_${Math.floor(y / 50)}`;
+      
+      if (!entity.exploredAreas.has(areaKey)) {
+        return { x, y };
+      }
+    }
+    return null;
+  }
+
+  private findNearbyEntities(entity: Entity, worldState: WorldState, radius: number): Entity[] {
+    return Array.from(worldState.entities.values()).filter(other => 
+      other.id !== entity.id && this.getDistance(entity, other) <= radius
+    );
+  }
+
+  private findResourceAt(target: { x: number; y: number }, worldState: WorldState): Resource | null {
+    for (const resource of worldState.resources.values()) {
+      if (this.getDistance(target, resource) < 10) {
+        return resource;
+      }
+    }
+    return null;
+  }
+
+  private findEntityAt(target: { x: number; y: number }, worldState: WorldState): Entity | null {
+    for (const entity of worldState.entities.values()) {
+      if (this.getDistance(target, entity) < 20) {
+        return entity;
+      }
+    }
+    return null;
+  }
+
+  private getDistance(a: { x: number; y: number }, b: { x: number; y: number }): number {
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    return Math.sqrt(dx * dx + dy * dy);
   }
 }

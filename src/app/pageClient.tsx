@@ -70,6 +70,9 @@ const HeroSection = () => (
             <a href="https://thevirtuworld.vercel.app/" target="_blank" rel="noopener noreferrer" className="px-8 py-4 border border-primary/30 backdrop-blur-sm rounded-full text-lg font-semibold hover:border-primary transition-all text-center">
               Join Metaverse
             </a>
+            <Link href="/play2d" className="px-8 py-4 border border-accent/30 backdrop-blur-sm rounded-full text-lg font-semibold hover:border-accent transition-all text-center">
+              AI Simulation
+            </Link>
           </div>
           <div className="mt-12 flex items-center gap-6">
             <div className="flex -space-x-4">
