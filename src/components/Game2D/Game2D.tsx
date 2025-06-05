@@ -25,6 +25,7 @@ const Game2D: React.FC<Game2DProps> = ({ width = 1200, height = 800 }) => {
   const [fps, setFps] = useState(0);
   const [selectedEntity, setSelectedEntity] = useState<string | null>(null);
   const [gameSpeed, setGameSpeed] = useState(1);
+  const [aiStats, setAiStats] = useState({ enhancedEntities: 0, provider: 'Fallback', enabled: false });
 
   // Initialize the game world
   const initializeWorld = useCallback(() => {
@@ -75,6 +76,11 @@ const Game2D: React.FC<Game2DProps> = ({ width = 1200, height = 800 }) => {
     // Update UI state
     setGeneration(worldStateRef.current.generation);
     setPopulation(worldStateRef.current.entities.size);
+    
+    // Update AI stats
+    if (aiEngineRef.current) {
+      setAiStats(aiEngineRef.current.getAIStats());
+    }
     
     // Calculate FPS
     const endTime = performance.now();
@@ -186,6 +192,15 @@ const Game2D: React.FC<Game2DProps> = ({ width = 1200, height = 800 }) => {
           <div className="text-sm">
             <span className="text-gray-400">FPS:</span> {fps}
           </div>
+          <div className="text-sm">
+            <span className="text-gray-400">AI:</span> 
+            <span className={aiStats.enabled ? 'text-green-400' : 'text-yellow-400'}>
+              {aiStats.provider}
+            </span>
+            {aiStats.enabled && (
+              <span className="text-gray-400 ml-1">({aiStats.enhancedEntities})</span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -268,7 +283,8 @@ const Game2D: React.FC<Game2DProps> = ({ width = 1200, height = 800 }) => {
             Buildings: {worldStateRef.current.buildings.size} | 
             Resources: {worldStateRef.current.resources.size} | 
             Weather: {worldStateRef.current.weather} | 
-            Season: {worldStateRef.current.season}
+            Season: {worldStateRef.current.season} |
+            AI: {aiStats.enabled ? `${aiStats.provider} (${aiStats.enhancedEntities} enhanced)` : 'Local only'}
           </>
         )}
       </div>
