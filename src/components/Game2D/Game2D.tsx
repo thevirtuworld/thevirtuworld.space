@@ -5,6 +5,7 @@ import { WorldState, Entity, Building, Resource, GameEvent } from './GameTypes';
 import { AIEngine } from './AIEngine';
 import { SimulationEngine } from './SimulationEngine';
 import { Renderer2D } from './Renderer2D';
+import AISettings from './AISettings';
 
 interface Game2DProps {
   width?: number;
@@ -25,7 +26,8 @@ const Game2D: React.FC<Game2DProps> = ({ width = 1200, height = 800 }) => {
   const [fps, setFps] = useState(0);
   const [selectedEntity, setSelectedEntity] = useState<string | null>(null);
   const [gameSpeed, setGameSpeed] = useState(1);
-  const [aiStats, setAiStats] = useState({ enhancedEntities: 0, provider: 'Fallback', enabled: false });
+  const [aiStats, setAiStats] = useState({ enhancedEntities: 0, provider: 'Local AI', enabled: true });
+  const [showAISettings, setShowAISettings] = useState(false);
 
   // Initialize the game world
   const initializeWorld = useCallback(() => {
@@ -166,6 +168,12 @@ const Game2D: React.FC<Game2DProps> = ({ width = 1200, height = 800 }) => {
           >
             Reset
           </button>
+          <button
+            onClick={() => setShowAISettings(true)}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold"
+          >
+            AI Settings
+          </button>
         </div>
         
         <div className="flex items-center space-x-6">
@@ -197,7 +205,7 @@ const Game2D: React.FC<Game2DProps> = ({ width = 1200, height = 800 }) => {
             <span className={aiStats.enabled ? 'text-green-400' : 'text-yellow-400'}>
               {aiStats.provider}
             </span>
-            {aiStats.enabled && (
+            {aiStats.enhancedEntities > 0 && (
               <span className="text-gray-400 ml-1">({aiStats.enhancedEntities})</span>
             )}
           </div>
@@ -232,7 +240,7 @@ const Game2D: React.FC<Game2DProps> = ({ width = 1200, height = 800 }) => {
                 <span className="text-gray-400">Level:</span> {selectedEntityData.level}
               </div>
               <div>
-                <span className="text-gray-400">Age:</span> {selectedEntityData.age}
+                <span className="text-gray-400">Age:</span> {Math.round(selectedEntityData.age)}
               </div>
               <div>
                 <span className="text-gray-400">Health:</span> {Math.round(selectedEntityData.health)}/100
@@ -288,6 +296,12 @@ const Game2D: React.FC<Game2DProps> = ({ width = 1200, height = 800 }) => {
           </>
         )}
       </div>
+
+      {/* AI Settings Modal */}
+      <AISettings
+        isOpen={showAISettings}
+        onClose={() => setShowAISettings(false)}
+      />
     </div>
   );
 };

@@ -434,10 +434,10 @@ export class AIColonyManager {
 
 export class AIEngine {
   private decisionCooldowns: Map<string, number> = new Map();
-  private readonly DECISION_INTERVAL = parseInt(process.env.ENTITY_AI_DECISION_INTERVAL || '30');
+  private readonly DECISION_INTERVAL = 30; // frames between decisions
   private aiEnhancedEntities: Set<string> = new Set();
 
-  async updateEntity(entity: Entity, worldState: WorldState, deltaTime: number): Promise<void> {
+  updateEntity(entity: Entity, worldState: WorldState, deltaTime: number): void {
     // Update cooldown
     const cooldown = this.decisionCooldowns.get(entity.id) || 0;
     this.decisionCooldowns.set(entity.id, Math.max(0, cooldown - 1));
@@ -449,7 +449,7 @@ export class AIEngine {
 
     // Make new decisions if cooldown is over
     if (cooldown <= 0) {
-      await this.makeDecision(entity, worldState);
+      this.makeDecision(entity, worldState);
       this.decisionCooldowns.set(entity.id, this.DECISION_INTERVAL);
     }
 
@@ -457,26 +457,16 @@ export class AIEngine {
     this.updateEntityState(entity, worldState, deltaTime);
   }
 
-  private async makeDecision(entity: Entity, worldState: WorldState): Promise<void> {
+  private makeDecision(entity: Entity, worldState: WorldState): void {
     // Skip if already has a task
     if (entity.currentTask && entity.currentTask.progress < 1) {
       return;
     }
 
-    // Try AI-enhanced decision making first
-    const aiDecision = await this.tryAIDecision(entity, worldState);
-    
-    if (aiDecision) {
-      // Convert AI response to game task
-      const task = this.convertAIResponseToTask(aiDecision, entity, worldState);
-      if (task) {
-        entity.currentTask = task;
-        this.aiEnhancedEntities.add(entity.id);
-        return;
-      }
-    }
+    // Try AI-enhanced decision making (async, non-blocking)
+    this.tryAIDecision(entity, worldState);
 
-    // Fallback to original AI logic
+    // Always make a local decision as fallback
     const decisions = this.evaluateOptions(entity, worldState);
     const bestDecision = this.selectBestDecision(decisions, entity);
 
@@ -485,23 +475,143 @@ export class AIEngine {
     }
   }
 
-  private async tryAIDecision(entity: Entity, worldState: WorldState): Promise<any> {
-    if (!aiService.isAIEnabled()) {
-      return null;
-    }
-
+  private async tryAIDecision(entity: Entity, worldState: WorldState): Promise<void> {
     try {
       const worldContext = this.buildWorldContext(entity, worldState);
       const aiResponse = await aiService.generateEntityDecision(entity, worldContext);
       
-      if (aiResponse && aiResponse.confidence > 0.3) {
-        return aiResponse;
+      if (aiResponse && aiResponse.confidence > 0.5) {
+        const task = this.convertAIResponseToTask(aiResponse, entity, worldState);
+        if (task) {
+          entity.currentTask = task;
+          this.aiEnhancedEntities.add(entity.id);
+        }
       }
     } catch (error) {
-      console.warn(`AI decision failed for entity ${entity.id}:`, error);
+      // Silently fail - local AI will handle it
+    }
+  }
+
+  private evaluateOptions(entity: Entity, worldState: WorldState): Task[] {
+    const options: Task[] = [];
+
+    // Gather food if hungry
+    if (entity.food < 30) {
+      const foodResource = this.findNearestResource(entity, worldState, 'food');
+      if (foodResource) {
+        options.push({
+          type: 'gather',
+          resource: 'food',
+          target: { x: foodResource.x, y: foodResource.y },
+          progress: 0,
+          duration: 60
+        });
+      }
     }
 
-    return null;
+    // Gather wood if needed
+    if (entity.wood < 20) {
+      const woodResource = this.findNearestResource(entity, worldState, 'wood');
+      if (woodResource) {
+        options.push({
+          type: 'gather',
+          resource: 'wood',
+          target: { x: woodResource.x, y: woodResource.y },
+          progress: 0,
+          duration: 80
+        });
+      }
+    }
+
+    // Build house if homeless and has resources
+    if (entity.buildings.length === 0 && entity.wood >= 50 && entity.stone >= 30) {
+      const buildSite = this.findBuildingSite(entity, worldState);
+      options.push({
+        type: 'build',
+        structure: 'house',
+        target: buildSite,
+        progress: 0,
+        duration: 120
+      });
+    }
+
+    // Explore if exploration personality is high
+    if (entity.aiPersonality.exploration > 0.6) {
+      const unexploredArea = this.findUnexploredArea(entity, worldState);
+      if (unexploredArea) {
+        options.push({
+          type: 'explore',
+          target: unexploredArea,
+          progress: 0,
+          duration: 100
+        });
+      }
+    }
+
+    // Communicate with nearby entities
+    const nearbyEntities = this.findNearbyEntities(entity, worldState, 50);
+    if (nearbyEntities.length > 0 && entity.aiPersonality.cooperation > 0.5) {
+      const target = nearbyEntities[0];
+      options.push({
+        type: 'communicate',
+        target: { x: target.x, y: target.y },
+        progress: 0,
+        duration: 40
+      });
+    }
+
+    return options;
+  }
+
+  private selectBestDecision(options: Task[], entity: Entity): Task | null {
+    if (options.length === 0) return null;
+
+    const scoredOptions = options.map(option => ({
+      task: option,
+      score: this.scoreTask(option, entity)
+    }));
+
+    scoredOptions.sort((a, b) => b.score - a.score);
+    return scoredOptions[0].task;
+  }
+
+  private scoreTask(task: Task, entity: Entity): number {
+    let score = 0;
+
+    switch (task.type) {
+      case 'gather':
+        if (task.resource === 'food' && entity.food < 50) {
+          score = 100 - entity.food;
+        } else if (task.resource === 'wood' && entity.wood < 30) {
+          score = 50 - entity.wood;
+        } else if (task.resource === 'stone' && entity.stone < 30) {
+          score = 40 - entity.stone;
+        }
+        break;
+
+      case 'build':
+        if (entity.buildings.length === 0) {
+          score = 80;
+        } else {
+          score = 30;
+        }
+        break;
+
+      case 'explore':
+        score = entity.aiPersonality.exploration * 60;
+        break;
+
+      case 'communicate':
+        score = entity.aiPersonality.cooperation * 40;
+        break;
+
+      case 'defend':
+        score = entity.aiPersonality.aggression * 70;
+        break;
+    }
+
+    score += (Math.random() - 0.5) * 10;
+    return score;
   }
 
   private buildWorldContext(entity: Entity, worldState: WorldState): any {
@@ -524,7 +634,7 @@ export class AIEngine {
   }
 
   private calculateTimeOfDay(gameTime: number): string {
-    const hour = (gameTime / 10) % 24; // Arbitrary time scale
+    const hour = (gameTime / 10) % 24;
     if (hour < 6) return 'night';
     if (hour < 12) return 'morning';
     if (hour < 18) return 'afternoon';
@@ -537,27 +647,21 @@ export class AIEngine {
     switch (action) {
       case 'gather':
         return this.createGatherTask(entity, worldState, aiResponse);
-      
       case 'build':
         return this.createBuildTask(entity, worldState, aiResponse);
-      
       case 'explore':
         return this.createExploreTask(entity, worldState, aiResponse);
-      
       case 'communicate':
         return this.createCommunicateTask(entity, worldState, aiResponse);
-      
       case 'defend':
         return this.createDefendTask(entity, worldState, aiResponse);
-      
       default:
         return null;
     }
   }
 
   private createGatherTask(entity: Entity, worldState: WorldState, aiResponse: any): Task | null {
-    // Determine what to gather based on AI reasoning or current needs
-    let resourceType = 'food'; // default
+    let resourceType = 'food';
     
     if (aiResponse.reasoning) {
       const reasoning = aiResponse.reasoning.toLowerCase();
@@ -580,8 +684,7 @@ export class AIEngine {
   }
 
   private createBuildTask(entity: Entity, worldState: WorldState, aiResponse: any): Task | null {
-    // Determine what to build based on AI reasoning
-    let structureType = 'house'; // default
+    let structureType = 'house';
     
     if (aiResponse.reasoning) {
       const reasoning = aiResponse.reasoning.toLowerCase();
@@ -591,7 +694,6 @@ export class AIEngine {
       else if (reasoning.includes('tower')) structureType = 'tower';
     }
 
-    // Check if entity has resources
     const requiredResources = this.getBuildingRequirements(structureType);
     if (!this.hasRequiredResources(entity, requiredResources)) {
       return null;
@@ -610,7 +712,6 @@ export class AIEngine {
   private createExploreTask(entity: Entity, worldState: WorldState, aiResponse: any): Task | null {
     let unexploredArea = this.findUnexploredArea(entity, worldState);
     if (!unexploredArea) {
-      // Generate a random exploration target
       const angle = Math.random() * Math.PI * 2;
       const distance = 100 + Math.random() * 100;
       unexploredArea = {
@@ -641,7 +742,6 @@ export class AIEngine {
   }
 
   private createDefendTask(entity: Entity, worldState: WorldState, aiResponse: any): Task | null {
-    // Find threats or just defensive positioning
     const nearbyEntities = this.findNearbyEntities(entity, worldState, 30);
     const hostileEntities = nearbyEntities.filter(other => 
       other.aiPersonality.aggression > 0.7
@@ -691,12 +791,10 @@ export class AIEngine {
     
     task.progress += progressRate * deltaTime;
 
-    // Move towards target if needed
     if (task.target) {
       this.moveTowardsTarget(entity, task.target);
     }
 
-    // Complete task when progress reaches 1
     if (task.progress >= 1) {
       this.completeTask(entity, task, worldState);
       entity.currentTask = undefined;
@@ -740,7 +838,6 @@ export class AIEngine {
         break;
     }
 
-    // Gain experience
     entity.experience += 10;
     if (entity.experience >= entity.level * 100) {
       entity.level++;
@@ -751,7 +848,6 @@ export class AIEngine {
   private completeGatherTask(entity: Entity, task: Task, worldState: WorldState): void {
     if (!task.resource || !task.target) return;
 
-    // Find and consume resource
     const resource = this.findResourceAt(task.target, worldState);
     if (resource && resource.amount > 0) {
       const gathered = Math.min(resource.amount, 10 + entity.level * 2);
@@ -774,14 +870,14 @@ export class AIEngine {
   private completeBuildTask(entity: Entity, task: Task, worldState: WorldState): void {
     if (!task.structure || !task.target) return;
 
-    // Consume resources and create building
-    if (task.structure === 'house' && entity.wood >= 50 && entity.stone >= 30) {
-      entity.wood -= 50;
-      entity.stone -= 30;
+    const requirements = this.getBuildingRequirements(task.structure);
+    if (entity.wood >= requirements.wood && entity.stone >= requirements.stone) {
+      entity.wood -= requirements.wood;
+      entity.stone -= requirements.stone;
 
       const building: Building = {
         id: `building_${Date.now()}_${Math.random()}`,
-        type: 'house',
+        type: task.structure as any,
         x: task.target.x,
         y: task.target.y,
         health: 100,
@@ -806,7 +902,6 @@ export class AIEngine {
 
     const nearbyEntity = this.findEntityAt(task.target, worldState);
     if (nearbyEntity) {
-      // Improve relationship
       const currentRelation = entity.relationships.get(nearbyEntity.id) || 0;
       entity.relationships.set(nearbyEntity.id, Math.min(100, currentRelation + 10));
       
@@ -816,7 +911,6 @@ export class AIEngine {
   }
 
   private updateEntityState(entity: Entity, worldState: WorldState, deltaTime: number): void {
-    // Move towards target position
     if (entity.isMoving) {
       const dx = entity.targetX - entity.x;
       const dy = entity.targetY - entity.y;
@@ -832,17 +926,14 @@ export class AIEngine {
       }
     }
 
-    // Consume food over time
     entity.food = Math.max(0, entity.food - 0.1 * deltaTime);
     
-    // Health decreases if no food
     if (entity.food <= 0) {
       entity.health = Math.max(0, entity.health - 0.5 * deltaTime);
     } else if (entity.health < 100) {
       entity.health = Math.min(100, entity.health + 0.2 * deltaTime);
     }
 
-    // Age increases
     entity.age += 0.01 * deltaTime;
   }
 
@@ -865,13 +956,11 @@ export class AIEngine {
   }
 
   private findBuildingSite(entity: Entity, worldState: WorldState): { x: number; y: number } {
-    // Find a clear area near the entity
     const attempts = 10;
     for (let i = 0; i < attempts; i++) {
       const x = entity.x + (Math.random() - 0.5) * 100;
       const y = entity.y + (Math.random() - 0.5) * 100;
       
-      // Check if area is clear
       const isClear = !Array.from(worldState.buildings.values()).some(building =>
         this.getDistance({ x, y }, building) < 30
       );

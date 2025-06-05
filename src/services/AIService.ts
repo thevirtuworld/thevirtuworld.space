@@ -7,8 +7,8 @@ interface AIResponse {
 
 interface AIProvider {
   name: string;
-  generateDecision(context: string, prompt: string): Promise<AIResponse>;
-  isAvailable(): Promise<boolean>;
+  generateEntityDecision(entity: any, context: any): Promise<any>;
+  isEnabled(): boolean;
 }
 
 class OpenAIProvider implements AIProvider {
@@ -17,203 +17,203 @@ class OpenAIProvider implements AIProvider {
   private model: string;
   private baseURL: string;
 
-  constructor(apiKey: string, model: string = 'gpt-4', baseURL?: string) {
+  constructor(apiKey: string, model = 'gpt-3.5-turbo', baseURL = 'https://api.openai.com/v1') {
     this.apiKey = apiKey;
     this.model = model;
-    this.baseURL = baseURL || 'https://api.openai.com/v1';
+    this.baseURL = baseURL;
   }
 
-  async isAvailable(): Promise<boolean> {
-    if (!this.apiKey) return false;
+  isEnabled(): boolean {
+    return !!this.apiKey;
+  }
+
+  async generateEntityDecision(entity: any, context: any): Promise<any> {
+    if (!this.apiKey) return null;
+
     try {
-      const response = await fetch(`${this.baseURL}/models`, {
-        headers: { 'Authorization': `Bearer ${this.apiKey}` }
+      const prompt = this.buildPrompt(entity, context);
+      
+      const response = await fetch(`${this.baseURL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an AI controlling entities in a 2D life simulation. Respond with JSON containing action, reasoning, and confidence (0-1).'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 150
+        })
       });
-      return response.ok;
-    } catch {
-      return false;
-    }
-  }
 
-  async generateDecision(context: string, prompt: string): Promise<AIResponse> {
-    const response = await fetch(`${this.baseURL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: this.model,
-        messages: [
-          { role: 'system', content: context },
-          { role: 'user', content: prompt }
-        ],
-        temperature: parseFloat(process.env.AI_TEMPERATURE || '0.7'),
-        max_tokens: parseInt(process.env.AI_MAX_TOKENS || '512')
-      })
-    });
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status}`);
+      }
 
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
+      const data = await response.json();
+      const content = data.choices[0]?.message?.content;
+      
+      if (content) {
+        return JSON.parse(content);
+      }
+    } catch (error) {
+      console.warn('OpenAI decision generation failed:', error);
     }
 
-    const data = await response.json();
-    const content = data.choices[0]?.message?.content || '';
-    
-    return this.parseAIResponse(content);
+    return null;
   }
 
-  private parseAIResponse(content: string): AIResponse {
-    try {
-      // Try to parse JSON response
-      const parsed = JSON.parse(content);
-      return {
-        action: parsed.action || 'explore',
-        reasoning: parsed.reasoning,
-        confidence: parsed.confidence || 0.5,
-        metadata: parsed.metadata
-      };
-    } catch {
-      // Fallback to text parsing
-      const action = this.extractAction(content);
-      return {
-        action,
-        reasoning: content,
-        confidence: 0.6
-      };
-    }
-  }
+  private buildPrompt(entity: any, context: any): string {
+    return `Entity Status:
+- Health: ${entity.health}/100
+- Food: ${entity.food}/100
+- Resources: Wood(${entity.wood}), Stone(${entity.stone})
+- Level: ${entity.level}
+- Personality: Aggression(${(entity.aiPersonality.aggression * 100).toFixed(0)}%), Cooperation(${(entity.aiPersonality.cooperation * 100).toFixed(0)}%), Exploration(${(entity.aiPersonality.exploration * 100).toFixed(0)}%), Efficiency(${(entity.aiPersonality.efficiency * 100).toFixed(0)}%)
 
-  private extractAction(content: string): string {
-    const lowerContent = content.toLowerCase();
-    if (lowerContent.includes('gather') || lowerContent.includes('collect')) return 'gather';
-    if (lowerContent.includes('build') || lowerContent.includes('construct')) return 'build';
-    if (lowerContent.includes('explore') || lowerContent.includes('search')) return 'explore';
-    if (lowerContent.includes('communicate') || lowerContent.includes('talk')) return 'communicate';
-    if (lowerContent.includes('attack') || lowerContent.includes('fight')) return 'defend';
-    return 'explore';
+World Context:
+- Weather: ${context.weather}
+- Season: ${context.season}
+- Time: ${context.timeOfDay}
+- Nearby entities: ${context.nearbyEntities}
+- Available resources: ${context.availableResources}
+
+Choose the best action: gather, build, explore, communicate, or defend.
+Respond with JSON: {"action": "action_name", "reasoning": "why this action", "confidence": 0.8}`;
   }
 }
 
-class OllamaProvider implements AIProvider {
-  name = 'Ollama';
-  private host: string;
-  private model: string;
+class LocalAIProvider implements AIProvider {
+  name = 'Local AI';
 
-  constructor(host: string = 'http://localhost:11434', model: string = 'llama2') {
-    this.host = host;
-    this.model = model;
+  isEnabled(): boolean {
+    return true;
   }
 
-  async isAvailable(): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.host}/api/tags`);
-      return response.ok;
-    } catch {
-      return false;
-    }
-  }
+  async generateEntityDecision(entity: any, context: any): Promise<any> {
+    // Simple rule-based AI as fallback
+    let action = 'explore';
+    let reasoning = 'Default exploration behavior';
+    let confidence = 0.6;
 
-  async generateDecision(context: string, prompt: string): Promise<AIResponse> {
-    const response = await fetch(`${this.host}/api/generate`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: this.model,
-        prompt: `${context}\n\n${prompt}`,
-        stream: false,
-        options: {
-          temperature: parseFloat(process.env.AI_TEMPERATURE || '0.7'),
-          num_predict: parseInt(process.env.AI_MAX_TOKENS || '512')
-        }
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Ollama API error: ${response.statusText}`);
+    if (entity.health < 30) {
+      action = 'gather';
+      reasoning = 'Low health, need food';
+      confidence = 0.9;
+    } else if (entity.food < 20) {
+      action = 'gather';
+      reasoning = 'Low food reserves';
+      confidence = 0.8;
+    } else if (entity.wood >= 50 && entity.stone >= 30) {
+      action = 'build';
+      reasoning = 'Have enough resources to build';
+      confidence = 0.7;
+    } else if (context.nearbyEntities > 0 && entity.aiPersonality.cooperation > 0.6) {
+      action = 'communicate';
+      reasoning = 'Social entity with nearby companions';
+      confidence = 0.6;
     }
 
-    const data = await response.json();
-    const content = data.response || '';
-    
-    return this.parseResponse(content);
-  }
-
-  private parseResponse(content: string): AIResponse {
-    // Similar parsing logic as OpenAI
-    const action = this.extractAction(content);
     return {
       action,
-      reasoning: content,
-      confidence: 0.7
+      reasoning,
+      confidence
     };
-  }
-
-  private extractAction(content: string): string {
-    const lowerContent = content.toLowerCase();
-    if (lowerContent.includes('gather') || lowerContent.includes('collect')) return 'gather';
-    if (lowerContent.includes('build') || lowerContent.includes('construct')) return 'build';
-    if (lowerContent.includes('explore') || lowerContent.includes('search')) return 'explore';
-    if (lowerContent.includes('communicate') || lowerContent.includes('talk')) return 'communicate';
-    if (lowerContent.includes('attack') || lowerContent.includes('fight')) return 'defend';
-    return 'explore';
-  }
-}
-
-class CustomProvider implements AIProvider {
-  name = 'Custom';
-  private apiUrl: string;
-  private apiKey?: string;
-
-  constructor(apiUrl: string, apiKey?: string) {
-    this.apiUrl = apiUrl;
-    this.apiKey = apiKey;
-  }
-
-  async isAvailable(): Promise<boolean> {
-    try {
-      const headers: Record<string, string> = {};
-      if (this.apiKey) {
-        headers['Authorization'] = `Bearer ${this.apiKey}`;
-      }
-      
-      const response = await fetch(`${this.apiUrl}/health`, { headers });
-      return response.ok;
-    } catch {
-      return false;
-    }
-  }
-
-  async generateDecision(context: string, prompt: string): Promise<AIResponse> {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (this.apiKey) {
-      headers['Authorization'] = `Bearer ${this.apiKey}`;
-    }
-
-    const response = await fetch(`${this.apiUrl}/generate`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ context, prompt })
-    });
-
-    if (!response.ok) {
-      throw new Error(`Custom API error: ${response.statusText}`);
-    }
-
-    return await response.json();
   }
 }
 
 export class AIService {
-  private provider?: AIProvider;
-  private isEnabled: boolean = false;
-  private fallbackEnabled: boolean = true;
+  private currentProvider: AIProvider;
+  private fallbackProvider: AIProvider;
 
   constructor() {
-    this.initializeProvider();
+    this.fallbackProvider = new LocalAIProvider();
+    this.currentProvider = this.fallbackProvider;
+    this.loadUserSettings();
   }
 
-  private async initializeProvider(): Promise<void> {
+  private loadUserSettings(): void {
+    try {
+      const settings = localStorage.getItem('aiSettings');
+      if (settings) {
+        const { provider, apiKey, model, baseURL } = JSON.parse(settings);
+        this.updateProvider(provider, apiKey, model, baseURL);
+      }
+    } catch (error) {
+      console.warn('Failed to load AI settings:', error);
+    }
+  }
+
+  updateProvider(providerName: string, apiKey?: string, model?: string, baseURL?: string): void {
+    switch (providerName.toLowerCase()) {
+      case 'openai':
+        if (apiKey) {
+          this.currentProvider = new OpenAIProvider(apiKey, model, baseURL);
+        }
+        break;
+      case 'local':
+      default:
+        this.currentProvider = this.fallbackProvider;
+        break;
+    }
+
+    // Save settings to localStorage
+    try {
+      localStorage.setItem('aiSettings', JSON.stringify({
+        provider: providerName,
+        apiKey,
+        model,
+        baseURL
+      }));
+    } catch (error) {
+      console.warn('Failed to save AI settings:', error);
+    }
+  }
+
+  async generateEntityDecision(entity: any, context: any): Promise<any> {
+    try {
+      const result = await this.currentProvider.generateEntityDecision(entity, context);
+      if (result && result.confidence > 0.3) {
+        return result;
+      }
+    } catch (error) {
+      console.warn('Primary AI provider failed, using fallback:', error);
+    }
+
+    // Always fall back to local AI
+    return this.fallbackProvider.generateEntityDecision(entity, context);
+  }
+
+  isAIEnabled(): boolean {
+    return this.currentProvider.isEnabled();
+  }
+
+  getProviderName(): string {
+    return this.currentProvider.name;
+  }
+
+  getCurrentSettings(): any {
+    try {
+      const settings = localStorage.getItem('aiSettings');
+      return settings ? JSON.parse(settings) : { provider: 'local' };
+    } catch {
+      return { provider: 'local' };
+    }
+  }
+}
+
+// Export singleton instance
+export const aiService = new AIService();
     const providerType = process.env.AI_PROVIDER;
     if (!providerType) {
       console.log('🤖 AI Service: No provider configured, using fallback AI');
