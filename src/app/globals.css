@@ -123,3 +123,75 @@ body {
 .pixel-transition {
   transition: all 0.3s steps(5, end);
 }
+
+/* AI Game specific animations */
+.ai-pulse {
+  animation: aiPulse 2s ease-in-out infinite;
+}
+
+@keyframes aiPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(77, 124, 255, 0.7);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(77, 124, 255, 0);
+  }
+}
+
+.ai-thinking {
+  animation: aiThinking 1.5s ease-in-out infinite;
+}
+
+@keyframes aiThinking {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.game-board {
+  background: linear-gradient(45deg, rgba(77, 124, 255, 0.1), rgba(255, 77, 148, 0.1));
+  border: 2px solid rgba(77, 124, 255, 0.3);
+  animation: boardGlow 3s ease-in-out infinite alternate;
+}
+
+@keyframes boardGlow {
+  from {
+    border-color: rgba(77, 124, 255, 0.3);
+    box-shadow: 0 0 10px rgba(77, 124, 255, 0.2);
+  }
+  to {
+    border-color: rgba(255, 77, 148, 0.5);
+    box-shadow: 0 0 20px rgba(255, 77, 148, 0.3);
+  }
+}
+
+.ai-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: var(--primary);
+  border-radius: 50%;
+  animation: particleFloat 4s linear infinite;
+}
+
+@keyframes particleFloat {
+  0% {
+    transform: translateY(100px) translateX(0px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) translateX(50px);
+    opacity: 0;
+  }
+}
+
+.neural-network {
+  background: radial-gradient(circle at 50% 50%, rgba(138, 77, 255, 0.1) 0%, transparent 70%);
+}
