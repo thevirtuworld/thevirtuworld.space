@@ -608,7 +608,7 @@ export class AIEngine {
   }
 
   private createExploreTask(entity: Entity, worldState: WorldState, aiResponse: any): Task | null {
-    const unexploredArea = this.findUnexploredArea(entity, worldState);
+    let unexploredArea = this.findUnexploredArea(entity, worldState);
     if (!unexploredArea) {
       // Generate a random exploration target
       const angle = Math.random() * Math.PI * 2;
