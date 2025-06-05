@@ -5,6 +5,11 @@ Step into a universe where you can **play**, **create**, **own**, and **evolve**
 Whether you're a gamer, a creator, or a visionary, TheVirtuWorld is your gateway to endless possibilities.  
 
 ---
+🌐
+TheVirtuWorld is an AI-powered gaming metaverse where intelligent entities evolve, build, and interact in a dynamic 2D/3D world. Players and creators experience true digital ownership, emergent gameplay, and seamless Web3 integration—all in one platform.
+
+We will onboard 10,000+ active users in 6 months and enable creators to monetize AI-driven game assets, targeting $50,000+ in marketplace transactions within the first year.
+
 
 ## ✨ What Makes TheVirtuWorld Special?
 
@@ -118,4 +123,5 @@ Whether you're a gamer, a creator, or a visionary, TheVirtuWorld is your gateway
 
 > **TheVirtuWorld** — Where the future of gaming is being written, one line of code at a time.  
 > _Ready to play, create, and own your world?_
+
 

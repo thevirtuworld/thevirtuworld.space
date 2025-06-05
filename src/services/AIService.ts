@@ -1,76 +1,109 @@
-interface AIResponse {
+export interface AIResponse {
   action: string;
   reasoning?: string;
-  confidence: number;
-  metadata?: Record<string, any>;
+  confidence?: number;
 }
 
-interface AIProvider {
-  name: string;
-  generateEntityDecision(entity: any, context: any): Promise<any>;
-  isEnabled(): boolean;
-}
+export class AIService {
+  private provider: string = 'local';
+  private apiKey: string = '';
+  private model: string = 'gpt-3.5-turbo';
+  private baseURL: string = 'https://api.openai.com/v1';
 
-class OpenAIProvider implements AIProvider {
-  name = 'OpenAI';
-  private apiKey: string;
-  private model: string;
-  private baseURL: string;
-
-  constructor(apiKey: string, model = 'gpt-3.5-turbo', baseURL = 'https://api.openai.com/v1') {
-    this.apiKey = apiKey;
-    this.model = model;
-    this.baseURL = baseURL;
+  constructor() {
+    this.loadSettings();
   }
 
-  isEnabled(): boolean {
-    return !!this.apiKey;
-  }
-
-  async generateEntityDecision(entity: any, context: any): Promise<any> {
-    if (!this.apiKey) return null;
-
-    try {
-      const prompt = this.buildPrompt(entity, context);
-      
-      const response = await fetch(`${this.baseURL}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify({
-          model: this.model,
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an AI controlling entities in a 2D life simulation. Respond with JSON containing action, reasoning, and confidence (0-1).'
-            },
-            {
-              role: 'user',
-              content: prompt
-            }
-          ],
-          temperature: 0.7,
-          max_tokens: 150
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.status}`);
+  loadSettings() {
+    if (typeof window !== "undefined") {
+      const settings = localStorage.getItem('aiSettings');
+      if (settings) {
+        try {
+          const parsed = JSON.parse(settings);
+          this.provider = parsed.provider || 'local';
+          this.apiKey = parsed.apiKey || '';
+          this.model = parsed.model || 'gpt-3.5-turbo';
+          this.baseURL = parsed.baseURL || 'https://api.openai.com/v1';
+        } catch {}
       }
-
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content;
-      
-      if (content) {
-        return JSON.parse(content);
-      }
-    } catch (error) {
-      console.warn('OpenAI decision generation failed:', error);
     }
+  }
 
-    return null;
+  updateProvider(provider: string, apiKey?: string, model?: string, baseURL?: string) {
+    this.provider = provider || 'local';
+    this.apiKey = apiKey || '';
+    this.model = model || 'gpt-3.5-turbo';
+    this.baseURL = baseURL || 'https://api.openai.com/v1';
+    if (typeof window !== "undefined") {
+      localStorage.setItem('aiSettings', JSON.stringify({
+        provider: this.provider,
+        apiKey: this.apiKey,
+        model: this.model,
+        baseURL: this.baseURL,
+      }));
+    }
+  }
+
+  isAIEnabled(): boolean {
+    return this.provider !== 'local' && !!this.apiKey;
+  }
+
+  getProviderName(): string {
+    return this.provider === 'local' ? 'Local AI' : this.provider;
+  }
+
+  getCurrentSettings() {
+    return {
+      provider: this.provider,
+      apiKey: this.apiKey,
+      model: this.model,
+      baseURL: this.baseURL,
+    };
+  }
+
+  async generateEntityDecision(entityState: any, worldContext: any): Promise<AIResponse | null> {
+    if (!this.isAIEnabled()) {
+      // Fallback: local rule-based AI
+      return this.localDecision(entityState, worldContext);
+    }
+    if (this.provider === 'openai') {
+      try {
+        const prompt = this.buildPrompt(entityState, worldContext);
+        const response = await fetch(`${this.baseURL}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.apiKey}`,
+          },
+          body: JSON.stringify({
+            model: this.model,
+            messages: [
+              {
+                role: 'system',
+                content: 'You are an AI controlling entities in a 2D life simulation. Respond with JSON containing action, reasoning, and confidence (0-1).'
+              },
+              {
+                role: 'user',
+                content: prompt
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 150
+          })
+        });
+        if (!response.ok) throw new Error('OpenAI API error');
+        const data = await response.json();
+        const content = data.choices[0]?.message?.content;
+        if (content) {
+          return JSON.parse(content);
+        }
+      } catch (e) {
+        // Fallback to local AI on error
+        return this.localDecision(entityState, worldContext);
+      }
+    }
+    // Add more providers here as needed
+    return this.localDecision(entityState, worldContext);
   }
 
   private buildPrompt(entity: any, context: any): string {
@@ -91,60 +124,27 @@ World Context:
 Choose the best action: gather, build, explore, communicate, or defend.
 Respond with JSON: {"action": "action_name", "reasoning": "why this action", "confidence": 0.8}`;
   }
-}
 
-class LocalAIProvider implements AIProvider {
-  name = 'Local AI';
-
-  isEnabled(): boolean {
-    return true;
-  }
-
-  async generateEntityDecision(entity: any, context: any): Promise<any> {
-    // Simple rule-based AI as fallback
-    let action = 'explore';
-    let reasoning = 'Default exploration behavior';
-    let confidence = 0.6;
-
+  private localDecision(entity: any, context: any): AIResponse {
+    // Simple rule-based fallback
     if (entity.health < 30) {
-      action = 'gather';
-      reasoning = 'Low health, need food';
-      confidence = 0.9;
-    } else if (entity.food < 20) {
-      action = 'gather';
-      reasoning = 'Low food reserves';
-      confidence = 0.8;
-    } else if (entity.wood >= 50 && entity.stone >= 30) {
-      action = 'build';
-      reasoning = 'Have enough resources to build';
-      confidence = 0.7;
-    } else if (context.nearbyEntities > 0 && entity.aiPersonality.cooperation > 0.6) {
-      action = 'communicate';
-      reasoning = 'Social entity with nearby companions';
-      confidence = 0.6;
+      return { action: 'gather', reasoning: 'Low health, need food', confidence: 0.9 };
     }
-
-    return {
-      action,
-      reasoning,
-      confidence
-    };
+    if (entity.food < 20) {
+      return { action: 'gather', reasoning: 'Low food reserves', confidence: 0.8 };
+    }
+    if (entity.wood >= 50 && entity.stone >= 30) {
+      return { action: 'build', reasoning: 'Have enough resources to build', confidence: 0.7 };
+    }
+    if (context.nearbyEntities > 0 && entity.aiPersonality.cooperation > 0.6) {
+      return { action: 'communicate', reasoning: 'Social entity with nearby companions', confidence: 0.6 };
+    }
+    return { action: 'explore', reasoning: 'Default exploration behavior', confidence: 0.6 };
   }
 }
 
-export class AIService {
-  private currentProvider: AIProvider;
-  private fallbackProvider: AIProvider;
-
-  constructor() {
-    this.fallbackProvider = new LocalAIProvider();
-    this.currentProvider = this.fallbackProvider;
-    this.loadUserSettings();
-  }
-
-  private loadUserSettings(): void {
-    try {
-      const settings = localStorage.getItem('aiSettings');
+// Export singleton instance
+export const aiService = new AIService();
       if (settings) {
         const { provider, apiKey, model, baseURL } = JSON.parse(settings);
         this.updateProvider(provider, apiKey, model, baseURL);
