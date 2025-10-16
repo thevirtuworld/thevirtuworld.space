@@ -30,6 +30,7 @@ const Navbar = () => (
           <Link href="#games" className="hover:text-primary transition-colors">Games</Link>
           <Link href="#creators" className="hover:text-primary transition-colors">Creators</Link>
           <Link href="#metaverse" className="hover:text-primary transition-colors">Metaverse</Link>
+          <Link href="/genesis" className="hover:text-accent transition-colors">🏛️ Genesis</Link>
           <Link href="#web3" className="hover:text-primary transition-colors">Web3</Link>
         </div>
         
@@ -64,9 +65,9 @@ const HeroSection = () => (
             Discover, play, create, and own in the world's largest Web3 gaming ecosystem. Real world simulation meets blockchain innovation.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="px-8 py-4 bg-primary text-background rounded-full text-lg font-semibold hover:bg-primary/80 transition-all transform hover:scale-105 pulse">
-              Explore Games
-            </button>
+            <Link href="/genesis" className="px-8 py-4 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-full text-lg font-semibold hover:from-orange-700 hover:to-red-700 transition-all transform hover:scale-105 pulse text-center">
+              ⚒️ Forge Assets
+            </Link>
             {/* <a href="https://thevirtuworld.vercel.app/" target="_blank" rel="noopener noreferrer" className="px-8 py-4 border border-primary/30 backdrop-blur-sm rounded-full text-lg font-semibold hover:border-primary transition-all text-center">
               Join Metaverse
             </a> */}
