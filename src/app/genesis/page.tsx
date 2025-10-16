@@ -1,6 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
+import { Box, Container, Typography, AppBar, Toolbar, Paper } from '@mui/material';
 import WalletConnect from '@/components/WalletConnect';
 import AssetForge from '@/components/AssetForge';
 import GenesisGallery from '@/components/GenesisGallery';
@@ -10,49 +11,87 @@ export const dynamic = 'force-dynamic';
 
 export default function GenesisPage() {
   return (
-    <div className="min-h-screen bg-black text-white">
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       {/* Header */}
-      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-orange-500 to-red-500 bg-clip-text text-transparent">
+      <AppBar position="sticky" elevation={0} sx={{ bgcolor: 'rgba(10, 22, 40, 0.8)', backdropFilter: 'blur(10px)', borderBottom: 1, borderColor: 'divider' }}>
+        <Toolbar>
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography 
+              variant="h5" 
+              component="h1" 
+              sx={{ 
+                background: 'linear-gradient(90deg, #FF6B35 0%, #F7931E 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                fontWeight: 700,
+              }}
+            >
               theVirtuworld
-            </h1>
-            <p className="text-xs text-gray-500">AI-Forged Worlds, Secured by Bitcoin</p>
-          </div>
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              AI-Forged Worlds, Secured by Bitcoin
+            </Typography>
+          </Box>
           <WalletConnect />
-        </div>
-      </header>
+        </Toolbar>
+      </AppBar>
 
       {/* Hero Section */}
-      <section className="py-16 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+      <Container maxWidth="lg" sx={{ py: 8 }}>
+        <Box sx={{ textAlign: 'center', mb: 8 }}>
+          <Typography 
+            variant="h2" 
+            component="h2" 
+            gutterBottom
+            sx={{
+              background: 'linear-gradient(90deg, #4D7CFF 0%, #8A4DFF 50%, #FF4D94 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              fontWeight: 700,
+            }}
+          >
             Genesis Gallery
-          </h2>
-          <p className="text-xl text-gray-400 mb-8">
+          </Typography>
+          <Typography variant="h6" color="text.secondary">
             Mint unique assets whose essence is tied to the live state of the Bitcoin blockchain via Stacks
-          </p>
-        </div>
-      </section>
+          </Typography>
+        </Box>
+      </Container>
 
       {/* Forge Section */}
-      <section className="py-12 px-4 bg-gray-950">
-        <AssetForge />
-      </section>
+      <Box sx={{ bgcolor: 'rgba(0, 0, 0, 0.3)', py: 6 }}>
+        <Container maxWidth="lg">
+          <AssetForge />
+        </Container>
+      </Box>
 
       {/* Gallery Section */}
-      <section className="py-16 px-4">
+      <Container maxWidth="lg" sx={{ py: 8 }}>
         <GenesisGallery />
-      </section>
+      </Container>
 
       {/* Footer */}
-      <footer className="border-t border-gray-800 py-8 px-4 mt-16">
-        <div className="max-w-7xl mx-auto text-center text-gray-500 text-sm">
-          <p>Built on Stacks • Secured by Bitcoin • Powered by AI</p>
-          <p className="mt-2">Each asset is a unique imprint of the blockchain state at the moment of creation</p>
-        </div>
-      </footer>
-    </div>
+      <Paper 
+        component="footer" 
+        elevation={0} 
+        sx={{ 
+          borderTop: 1, 
+          borderColor: 'divider', 
+          py: 4, 
+          mt: 8,
+          textAlign: 'center',
+          bgcolor: 'background.paper',
+        }}
+      >
+        <Container maxWidth="lg">
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Built on Stacks • Secured by Bitcoin • Powered by AI
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Each asset is a unique imprint of the blockchain state at the moment of creation
+          </Typography>
+        </Container>
+      </Paper>
+    </Box>
   );
 }

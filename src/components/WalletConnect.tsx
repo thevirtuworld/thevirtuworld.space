@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useWeb3Auth } from '@/hooks/useWeb3Auth';
+import { Box, TextField, Button, Typography, Alert } from '@mui/material';
+import { Wallet, Logout } from '@mui/icons-material';
 
 export default function WalletConnect() {
   const [email, setEmail] = useState('');
@@ -18,48 +20,54 @@ export default function WalletConnect() {
 
   if (isAuthenticated && user) {
     return (
-      <div className="flex items-center gap-4">
-        <div className="text-sm">
-          <div className="text-gray-300">Connected</div>
-          <div className="font-mono text-xs text-gray-400">
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box>
+          <Typography variant="body2" color="text.secondary">
+            Connected
+          </Typography>
+          <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
             {user.prefs?.walletEth ? 
               `${user.prefs.walletEth.slice(0, 6)}...${user.prefs.walletEth.slice(-4)}` : 
               user.email
             }
-          </div>
-        </div>
-        <button
+          </Typography>
+        </Box>
+        <Button
+          variant="contained"
+          color="error"
+          startIcon={<Logout />}
           onClick={logout}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
         >
           Disconnect
-        </button>
-      </div>
+        </Button>
+      </Box>
     );
   }
 
   return (
-    <form onSubmit={handleLogin} className="flex items-center gap-2">
-      <input
+    <Box component="form" onSubmit={handleLogin} sx={{ display: 'flex', gap: 1, alignItems: 'flex-start', position: 'relative' }}>
+      <TextField
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="your@email.com"
+        size="small"
         required
-        className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+        sx={{ minWidth: 200 }}
       />
-      <button
+      <Button
         type="submit"
+        variant="contained"
         disabled={loading}
-        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        startIcon={<Wallet />}
       >
         {loading ? 'Connecting...' : 'Connect Wallet'}
-      </button>
+      </Button>
       {error && (
-        <div className="absolute top-full mt-2 text-red-400 text-sm">
+        <Alert severity="error" sx={{ position: 'absolute', top: '100%', mt: 1, width: '100%' }}>
           {error}
-        </div>
+        </Alert>
       )}
-    </form>
+    </Box>
   );
 }

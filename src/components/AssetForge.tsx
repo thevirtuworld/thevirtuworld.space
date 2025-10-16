@@ -5,6 +5,19 @@ import { useWeb3Auth } from '@/hooks/useWeb3Auth';
 import { getLatestBlockData } from '@/services/blockchain';
 import { generateAssetMetadata } from '@/services/assetGeneration';
 import type { AssetMetadata } from '@/types/web3';
+import { 
+  Box, 
+  Button, 
+  Card, 
+  CardContent, 
+  Typography, 
+  Alert,
+  Grid,
+  Chip,
+  Divider,
+  CircularProgress
+} from '@mui/material';
+import { Construction, LocalFireDepartment } from '@mui/icons-material';
 
 export default function AssetForge() {
   const { user, isAuthenticated } = useWeb3Auth();
@@ -22,25 +35,15 @@ export default function AssetForge() {
     setError(null);
 
     try {
-      // Get latest blockchain data
       const blockData = await getLatestBlockData();
-      
-      // Get user's wallet address
       const userAddress = user.prefs?.walletEth || user.$id;
 
-      // Generate asset metadata
       const metadata = await generateAssetMetadata({
         blockchainSeed: blockData,
         userAddress,
       });
 
       setAsset(metadata);
-
-      // In production, this would also:
-      // 1. Upload metadata to IPFS or Arweave
-      // 2. Mint NFT on Stacks blockchain
-      // 3. Save to database
-
     } catch (err: any) {
       setError(err.message || 'Failed to forge asset');
     } finally {
@@ -49,75 +52,116 @@ export default function AssetForge() {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="bg-gray-900 border border-gray-800 rounded-xl p-8">
-        <h2 className="text-3xl font-bold mb-4">⚒️ The Forge</h2>
-        <p className="text-gray-400 mb-8">
-          Create a unique asset bound to the current state of the Bitcoin network via Stacks
-        </p>
+    <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto' }}>
+      <Card elevation={0} sx={{ bgcolor: 'background.paper' }}>
+        <CardContent sx={{ p: 4 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <Construction fontSize="large" color="primary" />
+            <Typography variant="h4" component="h2">
+              The Forge
+            </Typography>
+          </Box>
+          <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
+            Create a unique asset bound to the current state of the Bitcoin network via Stacks
+          </Typography>
 
-        {!isAuthenticated ? (
-          <div className="text-center py-8">
-            <p className="text-gray-500">Connect your wallet to start forging</p>
-          </div>
-        ) : (
-          <>
-            <button
-              onClick={forgeAsset}
-              disabled={forging}
-              className="w-full py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold text-lg rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {forging ? '🔥 Forging...' : '⚒️ Forge New Asset'}
-            </button>
+          {!isAuthenticated ? (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography color="text.secondary">
+                Connect your wallet to start forging
+              </Typography>
+            </Box>
+          ) : (
+            <Box>
+              <Button
+                fullWidth
+                variant="contained"
+                size="large"
+                onClick={forgeAsset}
+                disabled={forging}
+                startIcon={forging ? <CircularProgress size={20} /> : <LocalFireDepartment />}
+                sx={{
+                  py: 2,
+                  background: 'linear-gradient(90deg, #FF6B35 0%, #F7931E 100%)',
+                  '&:hover': {
+                    background: 'linear-gradient(90deg, #FF5722 0%, #FF9800 100%)',
+                  },
+                }}
+              >
+                {forging ? 'Forging...' : 'Forge New Asset'}
+              </Button>
 
-            {error && (
-              <div className="mt-4 p-4 bg-red-900/30 border border-red-800 rounded-lg text-red-400">
-                {error}
-              </div>
-            )}
+              {error && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {error}
+                </Alert>
+              )}
 
-            {asset && (
-              <div className="mt-8 bg-gray-800 border border-gray-700 rounded-lg p-6">
-                <h3 className="text-xl font-bold mb-4">✨ Asset Forged!</h3>
-                
-                <div className="grid md:grid-cols-2 gap-6">
-                  {/* Image */}
-                  <div className="aspect-square bg-gray-900 rounded-lg overflow-hidden">
-                    <img 
-                      src={asset.image} 
-                      alt={asset.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
+              {asset && (
+                <Card sx={{ mt: 4, bgcolor: 'background.default' }}>
+                  <CardContent sx={{ p: 3 }}>
+                    <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      ✨ Asset Forged!
+                    </Typography>
+                    
+                    <Grid container spacing={3}>
+                      <Grid item xs={12} md={6}>
+                        <Box
+                          component="img"
+                          src={asset.image}
+                          alt={asset.name}
+                          sx={{
+                            width: '100%',
+                            aspectRatio: '1',
+                            borderRadius: 2,
+                            bgcolor: 'background.paper',
+                          }}
+                        />
+                      </Grid>
 
-                  {/* Metadata */}
-                  <div>
-                    <h4 className="text-2xl font-bold mb-2">{asset.name}</h4>
-                    <p className="text-gray-400 text-sm mb-4">{asset.description}</p>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="h5" gutterBottom>
+                          {asset.name}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" paragraph>
+                          {asset.description}
+                        </Typography>
 
-                    <div className="space-y-2">
-                      {asset.attributes.map((attr, i) => (
-                        <div key={i} className="flex justify-between text-sm">
-                          <span className="text-gray-500">{attr.trait_type}:</span>
-                          <span className="font-mono text-gray-300">{attr.value}</span>
-                        </div>
-                      ))}
-                    </div>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 3 }}>
+                          {asset.attributes.map((attr, i) => (
+                            <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                              <Typography variant="body2" color="text.secondary">
+                                {attr.trait_type}:
+                              </Typography>
+                              <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                                {attr.value}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Box>
 
-                    <div className="mt-6 pt-6 border-t border-gray-700">
-                      <h5 className="text-sm font-semibold mb-2">🔗 On-Chain Seed</h5>
-                      <div className="space-y-1 text-xs font-mono text-gray-400">
-                        <div>Block: {asset.onChainSeed.blockHeight}</div>
-                        <div className="break-all">Hash: {asset.onChainSeed.blockHash.slice(0, 32)}...</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
+                        <Divider sx={{ my: 2 }} />
+
+                        <Typography variant="subtitle2" gutterBottom>
+                          🔗 On-Chain Seed
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                          <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
+                            Block: {asset.onChainSeed.blockHeight}
+                          </Typography>
+                          <Typography variant="caption" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                            Hash: {asset.onChainSeed.blockHash.slice(0, 32)}...
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              )}
+            </Box>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
   );
 }

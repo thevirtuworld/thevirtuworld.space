@@ -2,8 +2,24 @@
 
 import { useState, useEffect } from 'react';
 import type { GeneratedAsset } from '@/types/web3';
+import {
+  Box,
+  Typography,
+  Grid,
+  Card,
+  CardMedia,
+  CardContent,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Divider,
+} from '@mui/material';
+import { Close, Museum } from '@mui/icons-material';
 
-// Mock data for demo - in production, fetch from database/blockchain
+// Mock data for demo
 const mockAssets: GeneratedAsset[] = [
   {
     id: '1',
@@ -39,11 +55,6 @@ export default function GenesisGallery() {
 
   const loadAssets = async () => {
     try {
-      // In production, fetch from API/database
-      // const response = await fetch('/api/assets');
-      // const data = await response.json();
-      
-      // For now, use mock data
       setTimeout(() => {
         setAssets(mockAssets);
         setLoading(false);
@@ -55,134 +66,194 @@ export default function GenesisGallery() {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-2">🏛️ Genesis Gallery</h2>
-        <p className="text-gray-400">
-          Explore unique assets forged from the Bitcoin blockchain
-        </p>
-      </div>
+    <Box sx={{ width: '100%' }}>
+      <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Museum fontSize="large" color="primary" />
+        <Box>
+          <Typography variant="h4" component="h2">
+            Genesis Gallery
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Explore unique assets forged from the Bitcoin blockchain
+          </Typography>
+        </Box>
+      </Box>
 
       {loading ? (
-        <div className="text-center py-12">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-        </div>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+          <CircularProgress />
+        </Box>
       ) : (
         <>
-          {/* Gallery Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          <Grid container spacing={3}>
             {assets.map((asset) => (
-              <button
-                key={asset.id}
-                onClick={() => setSelectedAsset(asset)}
-                className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden hover:border-blue-500 transition-all group"
-              >
-                <div className="aspect-square bg-gray-800">
-                  <img 
-                    src={asset.imageUrl} 
+              <Grid item xs={12} sm={6} md={4} key={asset.id}>
+                <Card
+                  sx={{
+                    cursor: 'pointer',
+                    transition: 'all 0.3s',
+                    '&:hover': {
+                      transform: 'translateY(-4px)',
+                      boxShadow: 4,
+                    },
+                  }}
+                  onClick={() => setSelectedAsset(asset)}
+                >
+                  <CardMedia
+                    component="img"
+                    height="300"
+                    image={asset.imageUrl}
                     alt={asset.metadata.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    sx={{ bgcolor: 'background.default' }}
                   />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold truncate">{asset.metadata.name}</h3>
-                  <p className="text-sm text-gray-500">
-                    {asset.metadata.attributes.find(a => a.trait_type === 'Rarity')?.value}
-                  </p>
-                </div>
-              </button>
+                  <CardContent>
+                    <Typography variant="h6" noWrap gutterBottom>
+                      {asset.metadata.name}
+                    </Typography>
+                    <Chip
+                      label={asset.metadata.attributes.find(a => a.trait_type === 'Rarity')?.value}
+                      size="small"
+                      color="primary"
+                    />
+                  </CardContent>
+                </Card>
+              </Grid>
             ))}
-          </div>
+          </Grid>
 
-          {/* Detail Modal */}
-          {selectedAsset && (
-            <div 
-              className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50"
-              onClick={() => setSelectedAsset(null)}
-            >
-              <div 
-                className="bg-gray-900 border border-gray-700 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-6">
-                    <h3 className="text-2xl font-bold">{selectedAsset.metadata.name}</h3>
-                    <button
-                      onClick={() => setSelectedAsset(null)}
-                      className="text-gray-400 hover:text-white text-2xl"
-                    >
-                      ×
-                    </button>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-6">
-                    {/* Image */}
-                    <div className="aspect-square bg-gray-800 rounded-lg overflow-hidden">
-                      <img 
-                        src={selectedAsset.imageUrl} 
-                        alt={selectedAsset.metadata.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-
-                    {/* Details */}
-                    <div className="space-y-6">
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-400 mb-2">Description</h4>
-                        <p className="text-gray-300">{selectedAsset.metadata.description}</p>
-                      </div>
-
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-400 mb-2">Attributes</h4>
-                        <div className="space-y-2">
-                          {selectedAsset.metadata.attributes.map((attr, i) => (
-                            <div key={i} className="flex justify-between text-sm">
-                              <span className="text-gray-500">{attr.trait_type}:</span>
-                              <span className="font-mono text-gray-300">{attr.value}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-400 mb-2">Blockchain Seed</h4>
-                        <div className="bg-gray-800 rounded-lg p-4 space-y-2 text-xs font-mono">
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Block Height:</span>
-                            <span className="text-gray-300">{selectedAsset.metadata.onChainSeed.blockHeight}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Hash:</span>
-                            <span className="text-gray-300 truncate ml-2">
-                              {selectedAsset.metadata.onChainSeed.blockHash}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Transactions:</span>
-                            <span className="text-gray-300">{selectedAsset.metadata.onChainSeed.txCount}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="text-sm font-semibold text-gray-400 mb-2">Owner</h4>
-                        <p className="font-mono text-sm text-gray-300">{selectedAsset.owner}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Empty State */}
           {assets.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              No assets forged yet. Be the first to create one!
-            </div>
+            <Box sx={{ textAlign: 'center', py: 6 }}>
+              <Typography color="text.secondary">
+                No assets forged yet. Be the first to create one!
+              </Typography>
+            </Box>
           )}
         </>
       )}
-    </div>
+
+      {/* Detail Dialog */}
+      <Dialog
+        open={!!selectedAsset}
+        onClose={() => setSelectedAsset(null)}
+        maxWidth="md"
+        fullWidth
+      >
+        {selectedAsset && (
+          <>
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h5">{selectedAsset.metadata.name}</Typography>
+              <IconButton onClick={() => setSelectedAsset(null)}>
+                <Close />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent>
+              <Grid container spacing={3}>
+                <Grid item xs={12} md={6}>
+                  <Box
+                    component="img"
+                    src={selectedAsset.imageUrl}
+                    alt={selectedAsset.metadata.name}
+                    sx={{
+                      width: '100%',
+                      aspectRatio: '1',
+                      borderRadius: 2,
+                      bgcolor: 'background.default',
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} md={6}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                        Description
+                      </Typography>
+                      <Typography variant="body2">
+                        {selectedAsset.metadata.description}
+                      </Typography>
+                    </Box>
+
+                    <Divider />
+
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                        Attributes
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {selectedAsset.metadata.attributes.map((attr, i) => (
+                          <Box key={i} sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="body2" color="text.secondary">
+                              {attr.trait_type}:
+                            </Typography>
+                            <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                              {attr.value}
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    </Box>
+
+                    <Divider />
+
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                        Blockchain Seed
+                      </Typography>
+                      <Card variant="outlined" sx={{ p: 2 }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="caption" color="text.secondary">
+                              Block Height:
+                            </Typography>
+                            <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
+                              {selectedAsset.metadata.onChainSeed.blockHeight}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="caption" color="text.secondary">
+                              Hash:
+                            </Typography>
+                            <Typography 
+                              variant="caption" 
+                              sx={{ 
+                                fontFamily: 'monospace',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                maxWidth: '200px'
+                              }}
+                            >
+                              {selectedAsset.metadata.onChainSeed.blockHash}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            <Typography variant="caption" color="text.secondary">
+                              Transactions:
+                            </Typography>
+                            <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
+                              {selectedAsset.metadata.onChainSeed.txCount}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Card>
+                    </Box>
+
+                    <Divider />
+
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                        Owner
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                        {selectedAsset.owner}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+              </Grid>
+            </DialogContent>
+          </>
+        )}
+      </Dialog>
+    </Box>
   );
 }

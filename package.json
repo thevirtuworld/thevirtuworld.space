@@ -9,6 +9,11 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.4",
+    "@mui/material": "^7.3.4",
+    "@mui/material-nextjs": "^7.3.3",
     "@stacks/blockchain-api-client": "^8.13.1",
     "@stacks/network": "^7.2.0",
     "@stacks/transactions": "^7.2.0",
