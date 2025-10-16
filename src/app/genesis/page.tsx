@@ -1,8 +1,12 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import WalletConnect from '@/components/WalletConnect';
 import AssetForge from '@/components/AssetForge';
 import GenesisGallery from '@/components/GenesisGallery';
+
+// Force dynamic rendering to avoid SSR issues with Appwrite
+export const dynamic = 'force-dynamic';
 
 export default function GenesisPage() {
   return (

@@ -17,13 +17,19 @@ export function useWeb3Auth(): UseWeb3AuthReturn {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
 
-  // Check if user is already authenticated
+  // Check if user is already authenticated (only in browser)
   useEffect(() => {
-    checkAuth();
+    setMounted(true);
+    if (typeof window !== 'undefined') {
+      checkAuth();
+    }
   }, []);
 
   const checkAuth = async () => {
+    if (typeof window === 'undefined') return;
+    
     try {
       const userData = await account.get();
       setUser(userData);
@@ -33,6 +39,10 @@ export function useWeb3Auth(): UseWeb3AuthReturn {
   };
 
   const login = useCallback(async (email: string) => {
+    if (typeof window === 'undefined') {
+      throw new Error('Login is only available in browser environment');
+    }
+
     setLoading(true);
     setError(null);
 
@@ -43,6 +53,15 @@ export function useWeb3Auth(): UseWeb3AuthReturn {
 
       if (!window.ethereum) {
         throw new Error('MetaMask not installed. Please install MetaMask browser extension.');
+      }
+
+      // Check if Appwrite is configured
+      const endpoint = process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT;
+      const project = process.env.NEXT_PUBLIC_APPWRITE_PROJECT;
+      const functionId = process.env.NEXT_PUBLIC_FUNCTION_ID;
+      
+      if (!endpoint || !project || !functionId) {
+        throw new Error('Appwrite is not configured. Please set environment variables.');
       }
 
       // Connect wallet
@@ -69,7 +88,7 @@ export function useWeb3Auth(): UseWeb3AuthReturn {
 
       // Call Appwrite Function
       const execution = await functions.createExecution(
-        process.env.NEXT_PUBLIC_FUNCTION_ID!,
+        functionId,
         JSON.stringify({ email, address, signature, message }),
         false
       );
@@ -100,6 +119,8 @@ export function useWeb3Auth(): UseWeb3AuthReturn {
   }, []);
 
   const logout = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+    
     try {
       await account.deleteSession('current');
       setUser(null);
@@ -108,6 +129,18 @@ export function useWeb3Auth(): UseWeb3AuthReturn {
       throw err;
     }
   }, []);
+
+  // Return safe defaults during SSR
+  if (!mounted) {
+    return {
+      user: null,
+      loading: false,
+      error: null,
+      login: async () => {},
+      logout: async () => {},
+      isAuthenticated: false
+    };
+  }
 
   return {
     user,

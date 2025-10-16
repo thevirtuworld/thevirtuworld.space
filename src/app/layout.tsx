@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'https://thevirtuworld.space'),
   title: "TheVirtuWorld | Global Gaming Marketplace",
   description: "The largest web3 gaming marketplace with virtual world simulation and blockchain integration",
   keywords: "gaming, marketplace, web3, blockchain, virtual world, metaverse, gaming platform",
