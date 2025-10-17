@@ -1,31 +1,19 @@
-/* Inline Tailwind-like utilities for the app */
+/* Global CSS for theVirtuWorld */
 
 :root {
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --background: #050A18;
-  --foreground: #F5F7FF;
-  --primary: #4D7CFF;
-  --secondary: #FF4D94;
-  --accent: #4DFFA3;
-  --purple: #8A4DFF;
-  --cyan: #4DEFFF;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    --background: #EEF1FF;
-    --foreground: #050A18;
-    --primary: #2E5BD9;
-    --secondary: #D92E7A;
-    --accent: #2ED976;
-  }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: var(--font-sans);
+html, body {
+  width: 100%;
+  height: 100%;
   overflow-x: hidden;
 }
 

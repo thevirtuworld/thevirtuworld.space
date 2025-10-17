@@ -3,282 +3,656 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { 
+  Box, 
+  Container, 
+  Typography, 
+  Button, 
+  AppBar, 
+  Toolbar, 
+  Grid, 
+  Card, 
+  CardContent, 
+  CardMedia, 
+  CardActions,
+  LinearProgress,
+  Avatar,
+  AvatarGroup,
+  Stack,
+  Chip,
+  Paper,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  Divider
+} from "@mui/material";
+import StarIcon from '@mui/icons-material/Star';
 
 // Simulate loading for the interactive elements
 const LoadingScreen = () => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-background">
-    <div className="text-center">
-      <h1 className="text-4xl font-bold mb-4 text-primary">TheVirtuWorld</h1>
-      <div className="w-64 h-2 bg-gray-700 rounded-full overflow-hidden">
-        <div className="loading-bar h-full bg-gradient-to-r from-primary to-secondary"></div>
-      </div>
-      <p className="mt-4 text-sm text-gray-400">Loading Virtual Experience...</p>
-    </div>
-  </div>
+  <Box 
+    sx={{ 
+      position: 'fixed', 
+      inset: 0, 
+      zIndex: 9999, 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      bgcolor: 'background.default'
+    }}
+  >
+    <Box sx={{ textAlign: 'center', maxWidth: 400 }}>
+      <Typography variant="h3" sx={{ mb: 4, color: 'primary.main', fontWeight: 700 }}>
+        TheVirtuWorld
+      </Typography>
+      <LinearProgress 
+        sx={{ 
+          height: 8, 
+          borderRadius: 4,
+          bgcolor: 'grey.800',
+          '& .MuiLinearProgress-bar': {
+            background: 'linear-gradient(90deg, #4D7CFF 0%, #FF4D94 100%)',
+          }
+        }} 
+      />
+      <Typography variant="body2" sx={{ mt: 4, color: 'text.secondary' }}>
+        Loading Virtual Experience...
+      </Typography>
+    </Box>
+  </Box>
 );
 
 const Navbar = () => (
-  <nav className="fixed w-full top-0 z-40 backdrop-blur-md bg-background/70 border-b border-white/10">
-    <div className="max-w-7xl mx-auto px-6 py-4">
-      <div className="flex justify-between items-center">
-        <Link href="/" className="flex items-center space-x-2">
-          <div className="h-8 w-8 rounded-full bg-primary glow"></div>
-          <span className="font-bold text-xl">TheVirtuWorld</span>
+  <AppBar 
+    position="fixed" 
+    elevation={0}
+    sx={{ 
+      bgcolor: 'rgba(5, 10, 24, 0.7)', 
+      backdropFilter: 'blur(10px)',
+      borderBottom: 1,
+      borderColor: 'rgba(255, 255, 255, 0.1)'
+    }}
+  >
+    <Container maxWidth="xl">
+      <Toolbar sx={{ py: 1 }}>
+        <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+          <Box 
+            sx={{ 
+              width: 32, 
+              height: 32, 
+              borderRadius: '50%', 
+              bgcolor: 'primary.main',
+              mr: 2,
+              animation: 'glow 3s ease-in-out infinite alternate',
+            }} 
+          />
+          <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary' }}>
+            TheVirtuWorld
+          </Typography>
         </Link>
         
-        <div className="hidden md:flex space-x-8">
-          <Link href="#games" className="hover:text-primary transition-colors">Games</Link>
-          <Link href="#creators" className="hover:text-primary transition-colors">Creators</Link>
-          <Link href="#metaverse" className="hover:text-primary transition-colors">Metaverse</Link>
-          <Link href="/genesis" className="hover:text-accent transition-colors">🏛️ Genesis</Link>
-          <Link href="#web3" className="hover:text-primary transition-colors">Web3</Link>
-        </div>
+        <Stack direction="row" spacing={4} sx={{ display: { xs: 'none', md: 'flex' } }}>
+          <Link href="#games" style={{ textDecoration: 'none' }}>
+            <Typography sx={{ color: 'text.primary', '&:hover': { color: 'primary.main' }, transition: 'color 0.3s' }}>
+              Games
+            </Typography>
+          </Link>
+          <Link href="#creators" style={{ textDecoration: 'none' }}>
+            <Typography sx={{ color: 'text.primary', '&:hover': { color: 'primary.main' }, transition: 'color 0.3s' }}>
+              Creators
+            </Typography>
+          </Link>
+          <Link href="#metaverse" style={{ textDecoration: 'none' }}>
+            <Typography sx={{ color: 'text.primary', '&:hover': { color: 'primary.main' }, transition: 'color 0.3s' }}>
+              Metaverse
+            </Typography>
+          </Link>
+          <Link href="/genesis" style={{ textDecoration: 'none' }}>
+            <Typography sx={{ color: 'accent.main', '&:hover': { color: 'accent.light' }, transition: 'color 0.3s' }}>
+              🏛️ Genesis
+            </Typography>
+          </Link>
+          <Link href="#web3" style={{ textDecoration: 'none' }}>
+            <Typography sx={{ color: 'text.primary', '&:hover': { color: 'primary.main' }, transition: 'color 0.3s' }}>
+              Web3
+            </Typography>
+          </Link>
+        </Stack>
         
-        <div className="flex space-x-4 items-center">
-          <button className="hidden md:block px-4 py-2 border border-primary text-primary rounded-full hover:bg-primary hover:text-background transition-colors">
+        <Stack direction="row" spacing={2} sx={{ ml: 2 }}>
+          <Button 
+            variant="outlined" 
+            color="primary"
+            sx={{ display: { xs: 'none', md: 'block' } }}
+          >
             Connect Wallet
-          </button>
-          {/* <a href="https://thevirtuworld.vercel.app/" target="_blank" rel="noopener noreferrer" className="px-4 py-2 bg-primary text-background rounded-full hover:bg-primary/80 transition-colors">
-            Launch App
-          </a> */}
-        </div>
-      </div>
-    </div>
-  </nav>
+          </Button>
+        </Stack>
+      </Toolbar>
+    </Container>
+  </AppBar>
 );
 
 const HeroSection = () => (
-  <section className="relative min-h-screen pt-20 overflow-hidden grid-bg">
-    <div className="absolute inset-0 z-0">
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background z-10"></div>
-      <div className="w-full h-full grid-bg"></div>
-    </div>
-    
-    <div className="max-w-7xl mx-auto px-6 py-20 relative z-10">
-      <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-        <div className="lg:w-1/2">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6">
-            <span className="block">The Ultimate</span>
-            <span className="text-primary">Gaming Metaverse</span>
-          </h1>
-          <p className="text-xl mb-8 text-gray-300">
+  <Box 
+    sx={{ 
+      position: 'relative', 
+      minHeight: '100vh', 
+      pt: 10,
+      overflow: 'hidden',
+      background: 'linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)',
+      backgroundSize: '20px 20px',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        inset: 0,
+        background: 'linear-gradient(180deg, transparent 0%, rgba(5, 10, 24, 1) 100%)',
+        zIndex: 1,
+      }
+    }}
+  >
+    <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 10, py: 10 }}>
+      <Grid container spacing={6} alignItems="center">
+        <Grid item xs={12} lg={6}>
+          <Typography variant="h2" component="h1" sx={{ mb: 3, fontWeight: 700 }}>
+            <Box component="span" sx={{ display: 'block' }}>The Ultimate</Box>
+            <Box component="span" sx={{ color: 'primary.main' }}>Gaming Metaverse</Box>
+          </Typography>
+          <Typography variant="h6" sx={{ mb: 4, color: 'text.secondary' }}>
             Discover, play, create, and own in the world's largest Web3 gaming ecosystem. Real world simulation meets blockchain innovation.
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4">
-            <Link href="/genesis" className="px-8 py-4 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-full text-lg font-semibold hover:from-orange-700 hover:to-red-700 transition-all transform hover:scale-105 pulse text-center">
+          </Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 6 }}>
+            <Button 
+              component={Link}
+              href="/genesis"
+              variant="contained"
+              size="large"
+              sx={{
+                background: 'linear-gradient(90deg, #EA580C 0%, #DC2626 100%)',
+                fontSize: '1.125rem',
+                py: 2,
+                px: 4,
+                animation: 'pulse 2s infinite',
+                '&:hover': {
+                  background: 'linear-gradient(90deg, #C2410C 0%, #B91C1C 100%)',
+                  transform: 'scale(1.05)',
+                }
+              }}
+            >
               ⚒️ Forge Assets
-            </Link>
-            {/* <a href="https://thevirtuworld.vercel.app/" target="_blank" rel="noopener noreferrer" className="px-8 py-4 border border-primary/30 backdrop-blur-sm rounded-full text-lg font-semibold hover:border-primary transition-all text-center">
-              Join Metaverse
-            </a> */}
-            <Link href="/play2d" className="px-8 py-4 border border-accent/30 backdrop-blur-sm rounded-full text-lg font-semibold hover:border-accent transition-all text-center">
+            </Button>
+            <Button 
+              component={Link}
+              href="/play2d"
+              variant="outlined"
+              size="large"
+              sx={{
+                borderColor: 'accent.main',
+                color: 'accent.main',
+                fontSize: '1.125rem',
+                py: 2,
+                px: 4,
+                '&:hover': {
+                  borderColor: 'accent.light',
+                  bgcolor: 'rgba(77, 255, 163, 0.1)',
+                }
+              }}
+            >
               AI Simulation
-            </Link>
-          </div>
-          <div className="mt-12 flex items-center gap-6">
-            <div className="flex -space-x-4">
+            </Button>
+          </Stack>
+          <Stack direction="row" spacing={3} alignItems="center">
+            <AvatarGroup max={4}>
               {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-gray-800"></div>
+                <Avatar key={i} sx={{ width: 40, height: 40, bgcolor: 'grey.800' }} />
               ))}
-            </div>
-            <p className="text-gray-400">
-              <span className="text-white font-semibold">10k+</span> players online
-            </p>
-          </div>
-        </div>
+            </AvatarGroup>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              <Box component="span" sx={{ color: 'text.primary', fontWeight: 600 }}>10k+</Box> players online
+            </Typography>
+          </Stack>
+        </Grid>
         
-        <div className="lg:w-1/2 relative">
-          <div className="relative w-full h-[500px] float">
-            <div className="absolute w-full h-full rounded-2xl overflow-hidden border border-white/10 glow">
-              {/* Hero image with gameplay.png as background */}
+        <Grid item xs={12} lg={6}>
+          <Box 
+            sx={{ 
+              position: 'relative',
+              height: 500,
+              animation: 'float 6s ease-in-out infinite',
+            }}
+          >
+            <Paper
+              elevation={0}
+              sx={{
+                position: 'relative',
+                width: '100%',
+                height: '100%',
+                borderRadius: 4,
+                overflow: 'hidden',
+                border: 1,
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                animation: 'glow 3s ease-in-out infinite alternate',
+              }}
+            >
               <Image 
                 src="/images/gameplay.png" 
                 alt="TheVirtuWorld Gameplay" 
-                layout="fill" 
-                objectFit="cover" 
-                className="w-full h-full"
+                fill
+                style={{ objectFit: 'cover' }}
               />
-            </div>
-            <div className="absolute -top-5 -right-5 w-24 h-24 bg-accent/20 backdrop-blur-md rounded-xl p-4 border border-accent/30 pulse">
-              <div className="text-sm font-semibold">NFT</div>
-              <div className="text-lg font-bold">Assets</div>
-            </div>
-            <div className="absolute bottom-10 -left-10 w-32 h-32 bg-purple/20 backdrop-blur-md rounded-xl p-4 border border-purple/30 pulse overflow-hidden">
+            </Paper>
+            <Paper
+              elevation={0}
+              sx={{
+                position: 'absolute',
+                top: -20,
+                right: -20,
+                width: 96,
+                height: 96,
+                bgcolor: 'rgba(77, 255, 163, 0.2)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: 3,
+                p: 2,
+                border: 1,
+                borderColor: 'rgba(77, 255, 163, 0.3)',
+                animation: 'pulse 2s infinite',
+              }}
+            >
+              <Typography variant="caption" sx={{ fontWeight: 600 }}>NFT</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>Assets</Typography>
+            </Paper>
+            <Paper
+              elevation={0}
+              sx={{
+                position: 'absolute',
+                bottom: 40,
+                left: -40,
+                width: 128,
+                height: 128,
+                bgcolor: 'rgba(138, 77, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: 3,
+                p: 2,
+                border: 1,
+                borderColor: 'rgba(138, 77, 255, 0.3)',
+                animation: 'pulse 2s infinite',
+                overflow: 'hidden',
+              }}
+            >
               <Image 
                 src="/images/gameplay.png" 
                 alt="Web3 Powered" 
-                layout="fill" 
-                objectFit="cover" 
-                className="absolute inset-0 opacity-50 z-0" 
+                fill
+                style={{ objectFit: 'cover', opacity: 0.5 }}
               />
-              <div className="relative z-10">
-                <div className="text-sm font-semibold">Web3</div>
-                <div className="text-lg font-bold">Powered</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+              <Box sx={{ position: 'relative', zIndex: 1 }}>
+                <Typography variant="caption" sx={{ fontWeight: 600 }}>Web3</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>Powered</Typography>
+              </Box>
+            </Paper>
+          </Box>
+        </Grid>
+      </Grid>
       
-      <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2">
-        <div className="w-6 h-10 border-2 border-gray-400 rounded-full flex justify-center">
-          <div className="w-1 h-3 bg-gray-400 rounded-full mt-1 animate-bounce"></div>
-        </div>
-      </div>
-    </div>
-  </section>
+      <Box 
+        sx={{ 
+          position: 'absolute',
+          bottom: 40,
+          left: '50%',
+          transform: 'translateX(-50%)',
+        }}
+      >
+        <Box 
+          sx={{ 
+            width: 24,
+            height: 40,
+            border: 2,
+            borderColor: 'grey.400',
+            borderRadius: 999,
+            display: 'flex',
+            justifyContent: 'center',
+          }}
+        >
+          <Box 
+            sx={{ 
+              width: 4,
+              height: 12,
+              bgcolor: 'grey.400',
+              borderRadius: 999,
+              mt: 1,
+              animation: 'bounce 1s infinite',
+              '@keyframes bounce': {
+                '0%, 100%': { transform: 'translateY(0)' },
+                '50%': { transform: 'translateY(8px)' },
+              }
+            }} 
+          />
+        </Box>
+      </Box>
+    </Container>
+  </Box>
 );
 
 const FeaturedGames = () => (
-  <section id="games" className="py-20 relative overflow-hidden">
-    <div className="max-w-7xl mx-auto px-6">
-      <h2 className="text-4xl font-bold mb-2">Featured Games</h2>
-      <p className="text-xl text-gray-400 mb-12">Experience the best of our virtual world</p>
+  <Box component="section" id="games" sx={{ py: 10, position: 'relative', overflow: 'hidden' }}>
+    <Container maxWidth="xl">
+      <Typography variant="h3" sx={{ mb: 1, fontWeight: 700 }}>
+        Featured Games
+      </Typography>
+      <Typography variant="h6" sx={{ mb: 6, color: 'text.secondary' }}>
+        Experience the best of our virtual world
+      </Typography>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <Grid container spacing={4}>
         {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="game-card bg-gray-900/50 backdrop-blur-md rounded-xl overflow-hidden border border-white/5 hover:border-primary/50 transition-all group hover:transform hover:scale-[1.02]">
-            <div className="h-48 w-full relative bg-gradient-to-br from-purple/20 to-cyan/20">
-              {/* Add gameplay image to each game card */}
-              <Image 
-                src="/images/gameplay.png" 
-                alt={`Virtual Game ${i} gameplay`} 
-                layout="fill" 
-                objectFit="cover" 
-                className="w-full h-full"
-              />
-              <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-md px-3 py-1 rounded-full text-xs">
-                Web3
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold text-lg group-hover:text-primary transition-colors">Virtual Game {i}</h3>
-                <div className="flex items-center">
-                  <span className="text-yellow-500 mr-1">★</span>
-                  <span className="text-sm">4.{9-i}</span>
-                </div>
-              </div>
-              <p className="text-gray-400 text-sm mb-4">An immersive experience in the virtual world.</p>
-              <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <div className="w-6 h-6 rounded-full bg-gray-700"></div>
-                  <span className="ml-2 text-sm">Studio {i}</span>
-                </div>
-                <button className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm hover:bg-primary/20">
+          <Grid item xs={12} md={6} lg={4} key={i}>
+            <Card 
+              sx={{ 
+                transition: 'all 0.3s',
+                '&:hover': {
+                  transform: 'scale(1.02)',
+                  borderColor: 'primary.main',
+                  '& .MuiCardMedia-root': {
+                    transform: 'scale(1.1)',
+                  }
+                }
+              }}
+            >
+              <Box sx={{ overflow: 'hidden', position: 'relative', height: 200 }}>
+                <CardMedia
+                  component="div"
+                  sx={{
+                    height: '100%',
+                    position: 'relative',
+                    transition: 'transform 0.3s',
+                  }}
+                >
+                  <Image 
+                    src="/images/gameplay.png" 
+                    alt={`Virtual Game ${i} gameplay`}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                  />
+                  <Chip
+                    label="Web3"
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: 12,
+                      right: 12,
+                      bgcolor: 'rgba(0, 0, 0, 0.5)',
+                      backdropFilter: 'blur(10px)',
+                      color: 'white',
+                    }}
+                  />
+                </CardMedia>
+              </Box>
+              <CardContent>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                    Virtual Game {i}
+                  </Typography>
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <StarIcon sx={{ color: 'warning.main', fontSize: 20 }} />
+                    <Typography variant="body2">4.{9-i}</Typography>
+                  </Stack>
+                </Stack>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+                  An immersive experience in the virtual world.
+                </Typography>
+              </CardContent>
+              <CardActions sx={{ px: 2, pb: 2, justifyContent: 'space-between' }}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <Avatar sx={{ width: 24, height: 24, bgcolor: 'grey.700' }} />
+                  <Typography variant="caption">Studio {i}</Typography>
+                </Stack>
+                <Button 
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                  sx={{ 
+                    bgcolor: 'rgba(77, 124, 255, 0.1)',
+                    '&:hover': {
+                      bgcolor: 'rgba(77, 124, 255, 0.2)',
+                    }
+                  }}
+                >
                   Play Now
-                </button>
-              </div>
-            </div>
-          </div>
+                </Button>
+              </CardActions>
+            </Card>
+          </Grid>
         ))}
-      </div>
+      </Grid>
       
-      <div className="mt-12 text-center">
-        <button className="px-6 py-3 border border-white/10 rounded-full hover:border-primary/50 transition-all">
+      <Box sx={{ mt: 6, textAlign: 'center' }}>
+        <Button 
+          variant="outlined"
+          size="large"
+          sx={{
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            '&:hover': {
+              borderColor: 'primary.main',
+            }
+          }}
+        >
           View All Games
-        </button>
-      </div>
-    </div>
-  </section>
+        </Button>
+      </Box>
+    </Container>
+  </Box>
 );
 
 const Metaverse = () => (
-  <section id="metaverse" className="py-20 relative overflow-hidden">
-    <div className="absolute inset-0 opacity-20">
-      <div className="grid-bg w-full h-full"></div>
-    </div>
-    
-    <div className="max-w-7xl mx-auto px-6 relative z-10">
-      <div className="flex flex-col lg:flex-row items-center gap-12">
-        <div className="lg:w-1/2">
-          <h2 className="text-4xl font-bold mb-6">The Real World Simulation</h2>
-          <p className="text-xl mb-8 text-gray-300">
+  <Box 
+    component="section" 
+    id="metaverse" 
+    sx={{ 
+      py: 10, 
+      position: 'relative', 
+      overflow: 'hidden',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        inset: 0,
+        opacity: 0.2,
+        background: 'linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)',
+        backgroundSize: '20px 20px',
+      }
+    }}
+  >
+    <Container maxWidth="xl" sx={{ position: 'relative', zIndex: 1 }}>
+      <Grid container spacing={6} alignItems="center">
+        <Grid item xs={12} lg={6}>
+          <Typography variant="h3" sx={{ mb: 3, fontWeight: 700 }}>
+            The Real World Simulation
+          </Typography>
+          <Typography variant="h6" sx={{ mb: 4, color: 'text.secondary' }}>
             Our metaverse provides the foundation for all games, simulating real world physics, economies, and social interactions. Build anything imaginable on our virtual world platform.
-          </p>
-          <ul className="space-y-4">
+          </Typography>
+          <List>
             {["Persistent World", "Real Physics", "Dynamic Economy", "Cross-Game Assets"].map((feature) => (
-              <li key={feature} className="flex items-center">
-                <span className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mr-3">
-                  <span className="w-3 h-3 rounded-full bg-primary"></span>
-                </span>
-                <span>{feature}</span>
-              </li>
+              <ListItem key={feature} sx={{ px: 0 }}>
+                <Box 
+                  sx={{ 
+                    width: 24,
+                    height: 24,
+                    borderRadius: '50%',
+                    bgcolor: 'rgba(77, 124, 255, 0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mr: 2,
+                  }}
+                >
+                  <Box 
+                    sx={{ 
+                      width: 12,
+                      height: 12,
+                      borderRadius: '50%',
+                      bgcolor: 'primary.main',
+                    }} 
+                  />
+                </Box>
+                <ListItemText primary={feature} />
+              </ListItem>
             ))}
-          </ul>
-          {/* <a href="https://thevirtuworld.vercel.app/" target="_blank" rel="noopener noreferrer" className="mt-8 px-6 py-3 bg-primary text-background rounded-full hover:bg-primary/80 transition-colors inline-block">
-            Explore Metaverse
-          </a> */}
-        </div>
+          </List>
+        </Grid>
         
-        <div className="lg:w-1/2 h-[400px] relative">
-          <div className="absolute w-full h-full rounded-2xl overflow-hidden border border-white/10 glow">
-            <div className="w-full h-full bg-gradient-to-br from-purple/20 to-cyan/20"></div>
-          </div>
-          <div className="absolute -bottom-5 -right-5 w-32 h-32 bg-secondary/20 backdrop-blur-md rounded-xl p-4 border border-secondary/30 float">
-            <div className="text-sm font-semibold">Infinite</div>
-            <div className="text-lg font-bold">Possibilities</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+        <Grid item xs={12} lg={6}>
+          <Box sx={{ position: 'relative', height: 400 }}>
+            <Paper
+              elevation={0}
+              sx={{
+                width: '100%',
+                height: '100%',
+                borderRadius: 4,
+                overflow: 'hidden',
+                border: 1,
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                background: 'linear-gradient(45deg, rgba(138, 77, 255, 0.2), rgba(77, 239, 255, 0.2))',
+                animation: 'glow 3s ease-in-out infinite alternate',
+              }}
+            />
+            <Paper
+              elevation={0}
+              sx={{
+                position: 'absolute',
+                bottom: -20,
+                right: -20,
+                width: 128,
+                height: 128,
+                bgcolor: 'rgba(255, 77, 148, 0.2)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: 3,
+                p: 2,
+                border: 1,
+                borderColor: 'rgba(255, 77, 148, 0.3)',
+                animation: 'float 6s ease-in-out infinite',
+              }}
+            >
+              <Typography variant="caption" sx={{ fontWeight: 600 }}>Infinite</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>Possibilities</Typography>
+            </Paper>
+          </Box>
+        </Grid>
+      </Grid>
+    </Container>
+  </Box>
 );
 
 const CreatorSection = () => (
-  <section id="creators" className="py-20 relative overflow-hidden">
-    <div className="max-w-7xl mx-auto px-6">
-      <h2 className="text-4xl font-bold mb-2">Game Creators</h2>
-      <p className="text-xl text-gray-400 mb-12">Build and monetize your own games in our ecosystem</p>
+  <Box component="section" id="creators" sx={{ py: 10, position: 'relative', overflow: 'hidden' }}>
+    <Container maxWidth="xl">
+      <Typography variant="h3" sx={{ mb: 1, fontWeight: 700 }}>
+        Game Creators
+      </Typography>
+      <Typography variant="h6" sx={{ mb: 6, color: 'text.secondary' }}>
+        Build and monetize your own games in our ecosystem
+      </Typography>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        <div className="bg-gray-900/50 backdrop-blur-md rounded-xl overflow-hidden border border-white/5 p-8">
-          <h3 className="text-2xl font-bold mb-4">Developer Tools</h3>
-          <p className="text-gray-300 mb-6">
-            Access powerful tools to build, test, and deploy your games in our metaverse. No complex blockchain knowledge required.
-          </p>
-          <ul className="space-y-3 mb-8">
-            {["SDK Access", "Asset Marketplace", "Testing Environment", "Revenue Sharing"].map((tool) => (
-              <li key={tool} className="flex items-center text-gray-400">
-                <span className="text-primary mr-2">→</span>
-                <span>{tool}</span>
-              </li>
-            ))}
-          </ul>
-          <button className="px-6 py-3 border border-primary text-primary rounded-full hover:bg-primary hover:text-background transition-colors">
-            Get Started
-          </button>
-        </div>
+      <Grid container spacing={6}>
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h4" sx={{ mb: 2, fontWeight: 700 }}>
+                Developer Tools
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
+                Access powerful tools to build, test, and deploy your games in our metaverse. No complex blockchain knowledge required.
+              </Typography>
+              <List>
+                {["SDK Access", "Asset Marketplace", "Testing Environment", "Revenue Sharing"].map((tool) => (
+                  <ListItem key={tool} sx={{ px: 0, py: 0.5 }}>
+                    <Typography variant="body2" sx={{ color: 'primary.main', mr: 1 }}>→</Typography>
+                    <ListItemText primary={tool} primaryTypographyProps={{ color: 'text.secondary' }} />
+                  </ListItem>
+                ))}
+              </List>
+              <Button 
+                variant="outlined" 
+                color="primary"
+                size="large"
+                sx={{ mt: 4 }}
+              >
+                Get Started
+              </Button>
+            </CardContent>
+          </Card>
+        </Grid>
         
-        <div className="bg-gray-900/50 backdrop-blur-md rounded-xl overflow-hidden border border-white/5 p-8">
-          <h3 className="text-2xl font-bold mb-4">Creator Economy</h3>
-          <p className="text-gray-300 mb-6">
-            Earn from your creations with our blockchain-powered marketplace. Sell games, assets, and experiences.
-          </p>
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            {["NFT Integration", "Royalty System", "Cross-Game Assets", "Developer Analytics"].map((feature) => (
-              <div key={feature} className="bg-gray-800/50 p-4 rounded-lg">
-                <div className="text-sm text-gray-400 mb-1">Feature</div>
-                <div className="font-semibold">{feature}</div>
-              </div>
-            ))}
-          </div>
-          <button className="px-6 py-3 bg-gradient-to-r from-primary to-purple text-background rounded-full hover:opacity-90 transition-opacity">
-            Join Creator Program
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
+        <Grid item xs={12} lg={6}>
+          <Card sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 4 }}>
+              <Typography variant="h4" sx={{ mb: 2, fontWeight: 700 }}>
+                Creator Economy
+              </Typography>
+              <Typography variant="body1" sx={{ mb: 3, color: 'text.secondary' }}>
+                Earn from your creations with our blockchain-powered marketplace. Sell games, assets, and experiences.
+              </Typography>
+              <Grid container spacing={2} sx={{ mb: 4 }}>
+                {["NFT Integration", "Royalty System", "Cross-Game Assets", "Developer Analytics"].map((feature) => (
+                  <Grid item xs={6} key={feature}>
+                    <Paper 
+                      elevation={0}
+                      sx={{ 
+                        p: 2, 
+                        bgcolor: 'rgba(255, 255, 255, 0.02)',
+                        borderRadius: 2,
+                      }}
+                    >
+                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                        Feature
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {feature}
+                      </Typography>
+                    </Paper>
+                  </Grid>
+                ))}
+              </Grid>
+              <Button 
+                variant="contained"
+                size="large"
+                sx={{
+                  background: 'linear-gradient(90deg, #4D7CFF 0%, #8A4DFF 100%)',
+                  '&:hover': {
+                    opacity: 0.9,
+                  }
+                }}
+              >
+                Join Creator Program
+              </Button>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Container>
+  </Box>
 );
 
 const Web3Section = () => (
-  <section id="web3" className="py-20 relative overflow-hidden bg-gradient-to-b from-background to-gray-900/50">
-    <div className="max-w-7xl mx-auto px-6">
-      <h2 className="text-4xl font-bold mb-2">Web3 Integration</h2>
-      <p className="text-xl text-gray-400 mb-12">True ownership in the virtual world</p>
+  <Box 
+    component="section" 
+    id="web3" 
+    sx={{ 
+      py: 10, 
+      position: 'relative', 
+      overflow: 'hidden',
+      background: 'linear-gradient(180deg, rgba(5, 10, 24, 1) 0%, rgba(26, 32, 44, 0.5) 100%)',
+    }}
+  >
+    <Container maxWidth="xl">
+      <Typography variant="h3" sx={{ mb: 1, fontWeight: 700 }}>
+        Web3 Integration
+      </Typography>
+      <Typography variant="h6" sx={{ mb: 6, color: 'text.secondary' }}>
+        True ownership in the virtual world
+      </Typography>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <Grid container spacing={4}>
         {[
           {
             title: "Digital Ownership",
@@ -296,77 +670,159 @@ const Web3Section = () => (
             icon: "💰"
           }
         ].map((card) => (
-          <div key={card.title} className="bg-gray-900/50 backdrop-blur-md rounded-xl overflow-hidden border border-white/5 p-6 hover:border-primary/30 transition-all group">
-            <div className="text-3xl mb-4">{card.icon}</div>
-            <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">{card.title}</h3>
-            <p className="text-gray-400">{card.description}</p>
-          </div>
+          <Grid item xs={12} md={6} lg={4} key={card.title}>
+            <Card 
+              sx={{ 
+                height: '100%',
+                transition: 'all 0.3s',
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  '& .card-title': {
+                    color: 'primary.main',
+                  }
+                }
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Typography variant="h3" sx={{ mb: 2 }}>{card.icon}</Typography>
+                <Typography 
+                  variant="h5" 
+                  className="card-title"
+                  sx={{ mb: 1, fontWeight: 700, transition: 'color 0.3s' }}
+                >
+                  {card.title}
+                </Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  {card.description}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
         ))}
-      </div>
+      </Grid>
       
-      <div className="mt-16 bg-gray-800/30 backdrop-blur-md rounded-2xl p-8 border border-white/5">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="md:w-1/2">
-            <h3 className="text-2xl font-bold mb-4">Connect Your Wallet</h3>
-            <p className="text-gray-300 mb-6">
-              Link your Web3 wallet to start collecting, trading, and earning in the TheVirtuWorld ecosystem.
-            </p>
-          </div>
-          <div className="md:w-1/2 flex flex-wrap justify-center gap-4">
-            {["MetaMask", "Coinbase", "WalletConnect", "Phantom"].map((wallet) => (
-              <button key={wallet} className="px-6 py-3 bg-gray-700/50 rounded-xl hover:bg-gray-700 transition-colors">
-                {wallet}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+      <Card sx={{ mt: 8, bgcolor: 'rgba(255, 255, 255, 0.02)' }}>
+        <CardContent sx={{ p: 4 }}>
+          <Grid container spacing={4} alignItems="center">
+            <Grid item xs={12} md={6}>
+              <Typography variant="h4" sx={{ mb: 2, fontWeight: 700 }}>
+                Connect Your Wallet
+              </Typography>
+              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                Link your Web3 wallet to start collecting, trading, and earning in the TheVirtuWorld ecosystem.
+              </Typography>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Stack direction="row" flexWrap="wrap" gap={2} justifyContent="center">
+                {["MetaMask", "Coinbase", "WalletConnect", "Phantom"].map((wallet) => (
+                  <Button 
+                    key={wallet}
+                    variant="outlined"
+                    sx={{ 
+                      bgcolor: 'rgba(255, 255, 255, 0.02)',
+                      borderColor: 'rgba(255, 255, 255, 0.1)',
+                      '&:hover': {
+                        bgcolor: 'rgba(255, 255, 255, 0.05)',
+                        borderColor: 'rgba(255, 255, 255, 0.2)',
+                      }
+                    }}
+                  >
+                    {wallet}
+                  </Button>
+                ))}
+              </Stack>
+            </Grid>
+          </Grid>
+        </CardContent>
+      </Card>
+    </Container>
+  </Box>
 );
 
 const Footer = () => (
-  <footer className="border-t border-white/10 py-20">
-    <div className="max-w-7xl mx-auto px-6">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-        <div>
-          <div className="flex items-center space-x-2 mb-6">
-            <div className="h-8 w-8 rounded-full bg-primary"></div>
-            <span className="font-bold text-xl">TheVirtuWorld</span>
-          </div>
-          <p className="text-gray-400">
+  <Box 
+    component="footer" 
+    sx={{ 
+      borderTop: 1, 
+      borderColor: 'rgba(255, 255, 255, 0.1)', 
+      py: 10 
+    }}
+  >
+    <Container maxWidth="xl">
+      <Grid container spacing={6} sx={{ mb: 6 }}>
+        <Grid item xs={12} md={3}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 3 }}>
+            <Box sx={{ width: 32, height: 32, borderRadius: '50%', bgcolor: 'primary.main' }} />
+            <Typography variant="h6" sx={{ fontWeight: 700 }}>
+              TheVirtuWorld
+            </Typography>
+          </Stack>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             The ultimate gaming metaverse powered by Web3 technology.
-          </p>
-        </div>
+          </Typography>
+        </Grid>
         
         {["Platform", "Resources", "Company"].map((section) => (
-          <div key={section}>
-            <h3 className="font-bold mb-6">{section}</h3>
-            <ul className="space-y-4">
+          <Grid item xs={12} sm={4} md={3} key={section}>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 700 }}>
+              {section}
+            </Typography>
+            <List sx={{ p: 0 }}>
               {["Games", "Creators", "Marketplace", "Support"].map((link) => (
-                <li key={link}>
-                  <a href="#" className="text-gray-400 hover:text-white transition-colors">{link}</a>
-                </li>
+                <ListItem key={link} sx={{ px: 0, py: 0.5 }}>
+                  <Link href="#" style={{ textDecoration: 'none' }}>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: 'text.secondary',
+                        '&:hover': {
+                          color: 'text.primary',
+                        },
+                        transition: 'color 0.3s',
+                      }}
+                    >
+                      {link}
+                    </Typography>
+                  </Link>
+                </ListItem>
               ))}
-            </ul>
-          </div>
+            </List>
+          </Grid>
         ))}
-      </div>
+      </Grid>
       
-      <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center">
-        <div className="text-gray-500 text-sm">
+      <Divider sx={{ my: 4, borderColor: 'rgba(255, 255, 255, 0.1)' }} />
+      
+      <Stack 
+        direction={{ xs: 'column', md: 'row' }} 
+        justifyContent="space-between" 
+        alignItems="center"
+        spacing={2}
+      >
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
           © 2023 TheVirtuWorld. All rights reserved.
-        </div>
-        <div className="flex space-x-6 mt-4 md:mt-0">
+        </Typography>
+        <Stack direction="row" spacing={3}>
           {["Twitter", "Discord", "GitHub", "Medium"].map((social) => (
-            <a key={social} href="#" className="text-gray-400 hover:text-primary transition-colors">
-              {social}
-            </a>
+            <Link key={social} href="#" style={{ textDecoration: 'none' }}>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: 'text.secondary',
+                  '&:hover': {
+                    color: 'primary.main',
+                  },
+                  transition: 'color 0.3s',
+                }}
+              >
+                {social}
+              </Typography>
+            </Link>
           ))}
-        </div>
-      </div>
-    </div>
-  </footer>
+        </Stack>
+      </Stack>
+    </Container>
+  </Box>
 );
 
 export default function PageClient() {
@@ -384,15 +840,17 @@ export default function PageClient() {
   return (
     <>
       {loading && <LoadingScreen />}
-      <div className="min-h-screen">
+      <Box sx={{ minHeight: '100vh' }}>
         <Navbar />
-        <HeroSection />
-        <FeaturedGames />
-        <Metaverse />
-        <CreatorSection />
-        <Web3Section />
-        <Footer />
-      </div>
+        <Box sx={{ pt: 8 }}>
+          <HeroSection />
+          <FeaturedGames />
+          <Metaverse />
+          <CreatorSection />
+          <Web3Section />
+          <Footer />
+        </Box>
+      </Box>
     </>
   );
 }

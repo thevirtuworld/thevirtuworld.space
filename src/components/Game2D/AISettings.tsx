@@ -1,6 +1,27 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { 
+  Dialog, 
+  DialogTitle, 
+  DialogContent, 
+  DialogActions,
+  TextField,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Button,
+  Box,
+  Typography,
+  Stack,
+  IconButton,
+  Alert,
+  Paper
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
 import { aiService } from '../../services/AIService';
 
 interface AISettingsProps {
@@ -80,131 +101,118 @@ const AISettings: React.FC<AISettingsProps> = ({ isOpen, onClose }) => {
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-white">AI Settings</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-white"
-          >
-            ✕
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
-              AI Provider
-            </label>
-            <select
+    <Dialog open={isOpen} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Typography variant="h6" sx={{ fontWeight: 700 }}>AI Settings</Typography>
+          <IconButton onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Stack>
+      </DialogTitle>
+      
+      <DialogContent>
+        <Stack spacing={3} sx={{ mt: 1 }}>
+          <FormControl fullWidth>
+            <InputLabel>AI Provider</InputLabel>
+            <Select
               value={settings.provider}
               onChange={(e) => setSettings(prev => ({ ...prev, provider: e.target.value }))}
-              className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+              label="AI Provider"
             >
-              <option value="local">Local AI (Built-in)</option>
-              <option value="openai">OpenAI</option>
-            </select>
-          </div>
+              <MenuItem value="local">Local AI (Built-in)</MenuItem>
+              <MenuItem value="openai">OpenAI</MenuItem>
+            </Select>
+          </FormControl>
 
           {settings.provider === 'openai' && (
             <>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  API Key
-                </label>
-                <input
+              <Box>
+                <TextField
+                  fullWidth
                   type="password"
+                  label="API Key"
                   value={settings.apiKey}
                   onChange={(e) => setSettings(prev => ({ ...prev, apiKey: e.target.value }))}
                   placeholder="sk-..."
-                  className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
                 />
-                <p className="text-xs text-gray-400 mt-1">
+                <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, display: 'block' }}>
                   Your API key is stored locally in your browser
-                </p>
-              </div>
+                </Typography>
+              </Box>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Model
-                </label>
-                <select
+              <FormControl fullWidth>
+                <InputLabel>Model</InputLabel>
+                <Select
                   value={settings.model}
                   onChange={(e) => setSettings(prev => ({ ...prev, model: e.target.value }))}
-                  className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
+                  label="Model"
                 >
-                  <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                  <option value="gpt-4">GPT-4</option>
-                  <option value="gpt-4-turbo">GPT-4 Turbo</option>
-                </select>
-              </div>
+                  <MenuItem value="gpt-3.5-turbo">GPT-3.5 Turbo</MenuItem>
+                  <MenuItem value="gpt-4">GPT-4</MenuItem>
+                  <MenuItem value="gpt-4-turbo">GPT-4 Turbo</MenuItem>
+                </Select>
+              </FormControl>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Base URL (Optional)
-                </label>
-                <input
-                  type="text"
+              <Box>
+                <TextField
+                  fullWidth
+                  label="Base URL (Optional)"
                   value={settings.baseURL}
                   onChange={(e) => setSettings(prev => ({ ...prev, baseURL: e.target.value }))}
                   placeholder="https://api.openai.com/v1"
-                  className="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"
                 />
-                <p className="text-xs text-gray-400 mt-1">
+                <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, display: 'block' }}>
                   For custom endpoints or proxy servers
-                </p>
-              </div>
+                </Typography>
+              </Box>
             </>
           )}
 
-          <div className="flex space-x-3">
-            <button
+          <Stack direction="row" spacing={2} alignItems="center">
+            <Button
               onClick={handleTest}
               disabled={testStatus === 'testing'}
-              className="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800 text-white rounded transition-colors"
+              variant="contained"
+              fullWidth
             >
               {testStatus === 'testing' ? 'Testing...' : 'Test Connection'}
-            </button>
+            </Button>
             
             {testStatus === 'success' && (
-              <div className="flex items-center text-green-400">
-                ✓ Working
-              </div>
+              <Stack direction="row" spacing={0.5} alignItems="center" sx={{ color: 'success.main' }}>
+                <CheckCircleIcon fontSize="small" />
+                <Typography variant="body2">Working</Typography>
+              </Stack>
             )}
             
             {testStatus === 'error' && (
-              <div className="flex items-center text-red-400">
-                ✗ Failed
-              </div>
+              <Stack direction="row" spacing={0.5} alignItems="center" sx={{ color: 'error.main' }}>
+                <ErrorIcon fontSize="small" />
+                <Typography variant="body2">Failed</Typography>
+              </Stack>
             )}
-          </div>
+          </Stack>
 
-          <div className="flex space-x-3 pt-4 border-t border-gray-600">
-            <button
-              onClick={onClose}
-              className="flex-1 py-2 px-4 bg-gray-600 hover:bg-gray-700 text-white rounded transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              className="flex-1 py-2 px-4 bg-primary hover:bg-primary/80 text-white rounded transition-colors"
-            >
-              Save
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-4 p-3 bg-gray-700 rounded text-sm text-gray-300">
-          <strong>Local AI:</strong> Fast, reliable rule-based decisions.<br/>
-          <strong>External AI:</strong> More creative and contextual decisions using your API key.
-        </div>
-      </div>
-    </div>
+          <Alert severity="info" sx={{ mt: 2 }}>
+            <Typography variant="body2">
+              <strong>Local AI:</strong> Fast, reliable rule-based decisions.<br/>
+              <strong>External AI:</strong> More creative and contextual decisions using your API key.
+            </Typography>
+          </Alert>
+        </Stack>
+      </DialogContent>
+      
+      <DialogActions>
+        <Button onClick={onClose} variant="outlined">
+          Cancel
+        </Button>
+        <Button onClick={handleSave} variant="contained">
+          Save
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 

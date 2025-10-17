@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Box, Typography, Button, Paper, Stack, List, ListItem } from '@mui/material';
 
 interface GameUIProps {
   fps: number;
@@ -45,89 +46,201 @@ const GameUI: React.FC<GameUIProps> = ({ fps, isLocked, weather }) => {
   return (
     <>
       {/* Top-left info panel */}
-      <div className="absolute top-5 left-5 bg-black/50 p-3 rounded text-white">
-        <h2 className="text-lg font-bold">VirtuWorld</h2>
-        <p className="text-sm mt-2">FPS: {fps}</p>
-        <p className="text-sm">Weather: {weather}</p>
-        <p className="text-xs">
+      <Paper 
+        sx={{ 
+          position: 'absolute', 
+          top: 20, 
+          left: 20, 
+          bgcolor: 'rgba(0, 0, 0, 0.5)', 
+          p: 2, 
+          borderRadius: 1,
+          color: 'white',
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 700 }}>VirtuWorld</Typography>
+        <Typography variant="body2" sx={{ mt: 1 }}>FPS: {fps}</Typography>
+        <Typography variant="body2">Weather: {weather}</Typography>
+        <Typography variant="caption">
           Pos: ({coordinates.x.toFixed(1)}, {coordinates.y.toFixed(1)}, {coordinates.z.toFixed(1)})
-        </p>
-        <div className="text-xs mt-2 text-gray-300">
+        </Typography>
+        <Typography variant="caption" sx={{ display: 'block', mt: 1, color: 'grey.300' }}>
           Press H for Help, M for Map, P for Weather
-        </div>
-      </div>
+        </Typography>
+      </Paper>
       
       {/* Center crosshair for aiming */}
       {isLocked && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-          <div className="w-4 h-4 border-2 border-white rounded-full opacity-50"></div>
-        </div>
+        <Box 
+          sx={{ 
+            position: 'absolute', 
+            top: '50%', 
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+          }}
+        >
+          <Box 
+            sx={{ 
+              width: 16, 
+              height: 16, 
+              border: 2, 
+              borderColor: 'white', 
+              borderRadius: '50%', 
+              opacity: 0.5,
+            }} 
+          />
+        </Box>
       )}
       
       {/* Help panel */}
       {showHelp && isLocked && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/70 p-6 rounded-lg max-w-sm text-white">
-          <h2 className="text-xl font-bold mb-4">Controls</h2>
-          <ul className="space-y-2">
-            <li>W, A, S, D: Move</li>
-            <li>Mouse: Look around</li>
-            <li>Shift: Sprint</li>
-            <li>H: Toggle help</li>
-            <li>M: Toggle map</li>
-            <li>P: Cycle weather</li>
-            <li>ESC: Release mouse pointer</li>
-          </ul>
-          <button 
-            className="mt-4 bg-white text-black px-4 py-2 rounded-full hover:bg-gray-200 transition"
+        <Paper 
+          sx={{ 
+            position: 'absolute', 
+            top: '50%', 
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            bgcolor: 'rgba(0, 0, 0, 0.7)',
+            p: 3,
+            borderRadius: 2,
+            maxWidth: 400,
+            color: 'white',
+          }}
+        >
+          <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>Controls</Typography>
+          <List sx={{ py: 0 }}>
+            <ListItem sx={{ px: 0, py: 0.5 }}><Typography variant="body2">W, A, S, D: Move</Typography></ListItem>
+            <ListItem sx={{ px: 0, py: 0.5 }}><Typography variant="body2">Mouse: Look around</Typography></ListItem>
+            <ListItem sx={{ px: 0, py: 0.5 }}><Typography variant="body2">Shift: Sprint</Typography></ListItem>
+            <ListItem sx={{ px: 0, py: 0.5 }}><Typography variant="body2">H: Toggle help</Typography></ListItem>
+            <ListItem sx={{ px: 0, py: 0.5 }}><Typography variant="body2">M: Toggle map</Typography></ListItem>
+            <ListItem sx={{ px: 0, py: 0.5 }}><Typography variant="body2">P: Cycle weather</Typography></ListItem>
+            <ListItem sx={{ px: 0, py: 0.5 }}><Typography variant="body2">ESC: Release mouse pointer</Typography></ListItem>
+          </List>
+          <Button 
+            variant="contained"
+            sx={{ 
+              mt: 2, 
+              bgcolor: 'white', 
+              color: 'black',
+              '&:hover': { bgcolor: 'grey.200' },
+            }}
             onClick={() => setShowHelp(false)}
           >
             Close
-          </button>
-        </div>
+          </Button>
+        </Paper>
       )}
       
       {/* Mini map */}
       {showMap && isLocked && (
-        <div className="absolute bottom-5 right-5 w-64 h-64 bg-black/60 rounded-lg p-2">
-          <div className="w-full h-full relative rounded overflow-hidden border border-white/30">
+        <Paper 
+          sx={{ 
+            position: 'absolute', 
+            bottom: 20, 
+            right: 20, 
+            width: 256, 
+            height: 256,
+            bgcolor: 'rgba(0, 0, 0, 0.6)',
+            borderRadius: 2,
+            p: 1,
+          }}
+        >
+          <Box 
+            sx={{ 
+              width: '100%', 
+              height: '100%', 
+              position: 'relative', 
+              borderRadius: 1,
+              overflow: 'hidden',
+              border: 1,
+              borderColor: 'rgba(255, 255, 255, 0.3)',
+            }}
+          >
             {/* Simple map grid */}
-            <div className="absolute inset-0 grid grid-cols-8 grid-rows-8">
+            <Box 
+              sx={{ 
+                position: 'absolute', 
+                inset: 0, 
+                display: 'grid', 
+                gridTemplateColumns: 'repeat(8, 1fr)',
+                gridTemplateRows: 'repeat(8, 1fr)',
+              }}
+            >
               {Array(64).fill(0).map((_, i) => (
-                <div 
+                <Box 
                   key={i} 
-                  className="border border-white/10"
-                  style={{
-                    backgroundColor: Math.random() > 0.8 ? 'rgba(100,100,100,0.3)' : 'transparent'
+                  sx={{
+                    border: 1,
+                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                    bgcolor: Math.random() > 0.8 ? 'rgba(100,100,100,0.3)' : 'transparent',
                   }}
-                ></div>
+                />
               ))}
-            </div>
+            </Box>
             
             {/* Player position marker */}
-            <div 
-              className="absolute w-2 h-2 bg-blue-500 rounded-full"
-              style={{ 
+            <Box 
+              sx={{ 
+                position: 'absolute',
+                width: 8,
+                height: 8,
+                bgcolor: 'blue',
+                borderRadius: '50%',
                 left: '50%', 
                 top: '50%',
-                transform: 'translate(-50%, -50%)' 
+                transform: 'translate(-50%, -50%)',
               }}
-            ></div>
+            />
             
             {/* North indicator */}
-            <div className="absolute top-2 left-2 text-white text-xs font-bold">N</div>
-          </div>
-        </div>
+            <Typography 
+              variant="caption" 
+              sx={{ 
+                position: 'absolute', 
+                top: 8, 
+                left: 8, 
+                color: 'white', 
+                fontWeight: 700,
+              }}
+            >
+              N
+            </Typography>
+          </Box>
+        </Paper>
       )}
       
       {/* Instructions when not locked */}
       {!isLocked && (
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
-          <div className="bg-black/70 p-6 rounded-lg max-w-sm text-white">
-            <h2 className="text-xl font-bold mb-4">Click to explore the world</h2>
-            <p className="mb-2">Use W, A, S, D keys to move</p>
-            <p>Move your mouse to look around</p>
-          </div>
-        </div>
+        <Box 
+          sx={{ 
+            position: 'absolute', 
+            top: '50%', 
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            textAlign: 'center',
+          }}
+        >
+          <Paper 
+            sx={{ 
+              bgcolor: 'rgba(0, 0, 0, 0.7)', 
+              p: 3, 
+              borderRadius: 2,
+              maxWidth: 400,
+              color: 'white',
+            }}
+          >
+            <Typography variant="h5" sx={{ mb: 2, fontWeight: 700 }}>
+              Click to explore the world
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              Use W, A, S, D keys to move
+            </Typography>
+            <Typography variant="body2">
+              Move your mouse to look around
+            </Typography>
+          </Paper>
+        </Box>
       )}
     </>
   );
